@@ -84,24 +84,21 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
         class CommandCmds(bot.module_handler.Command):
             name = "cmds"
             desc = "Список команд, их аргументы и описание."
-            args = "[all]"
+            keys = ["all"]
 
             async def run(self, message, args, keys):
                 embed: discord.Embed = await client.send_info_embed(title="Список команд",
                                                                     return_embed=True, channel=message.channel)
 
-                for _, command in list(bot.module_handler.commands.items()):
-                    if len(args) < 1 or len(args) > 0 and args[0] != "all":
-                        if not bot.check_permissions(message.author.guild_permissions, command.permissions):
-                            break
+                for _, command in bot.module_handler.commands.items():
+                        if "all" in keys or bot.check_permissions(message.author.guild_permissions, command.permissions):
+                            keys_user = []
+                            for key in command.keys:
+                                keys_user.append("[--%s]" % key)
 
-                    keys_user = []
-                    for key in command.keys:
-                        keys_user.append("[--%s]" % key)
-
-                    embed.add_field(
-                        name="%s%s %s %s" % (client.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
-                        value=command.desc, inline=False)
+                            embed.add_field(
+                                name="%s%s %s %s" % (client.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
+                                value=command.desc, inline=False)
 
                 await message.channel.send(embed=embed)
                 return True
@@ -269,9 +266,16 @@ async def on_message(message: discord.Message):
                             value=command.desc)
 
             await message.channel.send(embed=embed)
-            await message.add_reaction(client.EMOJI_ERR)
+
+            try:
+                await message.add_reaction(client.EMOJI_ERR)
+            except discord.NotFound:
+                pass
         else:
-            await message.add_reaction(client.EMOJI_OK)
+            try:
+                await message.add_reaction(client.EMOJI_OK)
+            except discord.NotFound:
+                pass
 
 
 @client.event

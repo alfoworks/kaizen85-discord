@@ -84,7 +84,7 @@ class KaizenBot(discord.Client):
 
     @staticmethod
     def check_permissions(member_perms: discord.Permissions, perms_list) -> bool:
-        if len(perms_list) == 0:
+        if len(perms_list) < 1:
             return True
 
         member_perms_dict = {}
