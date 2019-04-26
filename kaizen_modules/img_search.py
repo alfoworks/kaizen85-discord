@@ -55,7 +55,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 try:
                     if not ("no-nsfw-check" in keys
                             and bot.check_permissions(message.author.guild_permissions, ["administrator"]))\
-                            and detector is None:
+                            and detector is not None:
                         is_nsfw = True if len(detector.detect(img_path)) > 0 else False
                 except Exception:
                     pass
