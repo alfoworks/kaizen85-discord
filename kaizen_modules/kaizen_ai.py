@@ -22,8 +22,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 break
 
         if not ok:
-            bot.logger.log("[Kaizen_AI] Can't find model files. The module will not load.")
-            bot.module_handler.unload_module(self.name)
+            bot.logger.log("[Kaizen_AI] Can't find model files. The command will not load.")
 
             return
 

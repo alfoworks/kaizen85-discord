@@ -17,7 +17,6 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
         if not os.path.isfile(detector_model):
             bot.logger.log("[ImageSearch] Can't find detector model file. NSFW check will not work.")
-            bot.module_handler.unload_module(self.name)
 
             return
         else:
