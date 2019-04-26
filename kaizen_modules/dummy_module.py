@@ -39,12 +39,18 @@ class Module(kaizen85modules.ModuleHandler.Module):
             name = "dummy"  # имя команды
             desc = "Хуй пизда?"  # описание команды
             args = ""  # необходимые аргументы команды (без имени)
+            permissions = []  # список прав, необходимых для выполнения этой команды.
+            # https://discordapp.com/developers/docs/topics/permissions список прав, которые
+            # можно сюда вбивать, находится по ссылке выше.
+            # ахтунг: если ввести неправильный перм, то все может закончится ошибкой.
 
             # метод команды, выполняется, думаю, понтно когда.
             async def run(self, message: discord.Message, args: str, keys: List[str]) -> bool:
                 # Универсальная команда для отправления эмбедов с заголовком, авой бота и текстом.
                 # Подробнее в kaizen85modules.py
                 await bot.send_info_embed(message.channel, bot.module_handler.params["test_param"], "Проверка")
+                # raise bot.AccessDeniedException() - делает тоже самое, если бы у пользователя не было
+                # прав из permissions. Необходимы, например, для подкоманд с определенными правами.
                 return True  # True - команда выполнена, False - недостаточно аргументов
                 # (в таком случае пользователю отправится помощь о команде
         # bot.module_handler.add_command(DummyCommand(), self)  # добавление команды

@@ -17,8 +17,6 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
         if not os.path.isfile(detector_model):
             bot.logger.log("[ImageSearch] Can't find detector model file. NSFW check will not work.")
-
-            return
         else:
             detector = NudeDetector(detector_model)
 
@@ -56,7 +54,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 # noinspection PyBroadException
                 try:
                     if not ("no-nsfw-check" in keys
-                            and message.author.guild_permissions >= discord.Permissions().all())\
+                            and bot.check_permissions(message.author.guild_permissions, ["administrator"]))\
                             and detector is None:
                         is_nsfw = True if len(detector.detect(img_path)) > 0 else False
                 except Exception:
@@ -65,9 +63,9 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 with open(img_path, "rb") as f:
                     img = discord.File(f, spoiler=is_nsfw)
 
-                    await message.channel.send("%s, картинка по запросу \"%s\" успешно найдена!%s" % (
+                    await message.channel.send("%s, картинка по запросу \"%s\" успешно найдена!%s%s" % (
                         message.author.mention, keyword,
-                        "\n⚠️Обнаружен NSFW контент! Картинка спрятана под спойлер. Открывайте на свой страх и риск! ⚠️" if is_nsfw else ""),
+                        "\n⚠️Обнаружен NSFW контент! Картинка спрятана под спойлер. Открывайте на свой страх и риск! ⚠️" if is_nsfw else "", "\n⚠️Проверка NSFW отключена! Проверьте логи. ⚠️" if not detector else ""),
                                                file=img)
 
                 return True

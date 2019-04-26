@@ -82,6 +82,26 @@ class KaizenBot(discord.Client):
         else:
             await channel.send(embed=embed)
 
+    @staticmethod
+    def check_permissions(member_perms: discord.Permissions, perms_list) -> bool:
+        if len(perms_list) == 0:
+            return True
+
+        member_perms_dict = {}
+
+        for k, v in iter(member_perms):
+            member_perms_dict[k] = v
+
+        for perm in perms_list:
+            if not member_perms_dict[perm]:
+                return False
+
+        return True
+
+    class AccessDeniedException(Exception):
+        def __init__(self):
+            super().__init__("AccessDenied")
+
 
 class ModuleHandler:
     modules = {}
@@ -118,7 +138,7 @@ class ModuleHandler:
         args = "..."
         keys = []
 
-        permissions: discord.Permissions = discord.Permissions().none()
+        permissions = []
 
         module = None
 

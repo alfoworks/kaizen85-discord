@@ -1,4 +1,6 @@
+import math
 import os
+import random
 import time
 import traceback
 from os import path
@@ -9,6 +11,9 @@ import kaizen85modules
 class Bot(kaizen85modules.KaizenBot):
     MODULES_DIR = "kaizen_modules"
     GLOBAL_GUILD_LOCK = 394132321839874050
+    ACCESS_DENIED_MSGS = ["Прав не завезли!", "Под админа косишь?", "Нойра бы такого не одобрил...",
+                          "Увы, но ты слишком мелковат для этого...", "Вы точно уверены? (да/нет)", "Ошибка 403",
+                          "Действие не выполнено, не знаю, почему.", "Под админа косишь?"]
 
     module_handler = kaizen85modules.ModuleHandler()
 
@@ -57,6 +62,9 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
 
             async def run(self, message, args, keys):
                 if len(args) > 0 and args[0] == "reload":
+                    if not bot.check_permissions(message.author.guild_permissions, ["administrator"]):
+                        raise bot.AccessDeniedException()
+
                     for name, _ in list(client.module_handler.modules.items()):
                         bot.module_handler.unload_module(name)
 
@@ -84,7 +92,7 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
 
                 for _, command in list(bot.module_handler.commands.items()):
                     if len(args) < 1 or len(args) > 0 and args[0] != "all":
-                        if command.permissions > message.author.guild_permissions:
+                        if not bot.check_permissions(message.author.guild_permissions, command.permissions):
                             break
 
                     keys_user = []
@@ -101,7 +109,7 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
         class CommandDie(bot.module_handler.Command):
             name = "die"
             desc = "Выключить бота"
-            permissions: discord.Permissions = discord.Permissions().all()
+            permissions = ["administrator"]
 
             async def run(self, message, args, keys):
                 try:
@@ -115,7 +123,7 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
             name = "params"
             desc = "Список параметров и управление ими"
             args = "[set] [key] [value]"
-            permissions: discord.Permissions = discord.Permissions().all()
+            permissions = ["administrator"]
 
             async def run(self, message, args, keys):
                 if len(args) >= 3 and args[0] == "set":
@@ -161,6 +169,8 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
         bot.module_handler.add_command(CommandParams(), self)
 
 
+start_loading_time = time.time()
+
 client = Bot()
 
 # ==================================================== #
@@ -188,12 +198,13 @@ async def on_ready():
 
     client.logger.log("""
 ==============
-INIT FINISHED!
+INIT FINISHED! (took %ss)
 Loaded Modules: %s
 Loaded Commands: %s
 Loaded Params: %s
 ==============
-    """ % (len(client.module_handler.modules), len(client.module_handler.commands), len(client.module_handler.params),),
+    """ % (math.floor(time.time() - start_loading_time), len(client.module_handler.modules),
+           len(client.module_handler.commands), len(client.module_handler.params)),
                       client.logger.PrintColors.OKBLUE)
 
 
@@ -232,8 +243,8 @@ async def on_message(message: discord.Message):
         args.remove(key)
         keys[i] = key[2:]
 
-    if command.permissions > message.author.guild_permissions:
-        await client.send_error_embed(message.channel, "Прав не завезли!")
+    if not client.check_permissions(message.author.guild_permissions, command.permissions):
+        await client.send_error_embed(message.channel, random.choice(client.ACCESS_DENIED_MSGS), "Нет прав!")
         return
 
     # noinspection PyBroadException
@@ -241,6 +252,8 @@ async def on_message(message: discord.Message):
         ok = await command.run(message, args, keys)
     except discord.Forbidden:
         await client.send_error_embed(message.channel, "У бота нет прав!")
+    except client.AccessDeniedException:
+        await client.send_error_embed(message.channel, random.choice(client.ACCESS_DENIED_MSGS), "Нет прав!")
     except Exception:
         await client.send_error_embed(message.channel, "```\n%s\n```" % traceback.format_exc(),
                                       "⚠️ Криворукий уебан, у тебя ошибка! ⚠️")
