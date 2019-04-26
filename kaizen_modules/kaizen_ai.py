@@ -1,10 +1,9 @@
 import os
-
 import discord
 from textgenrnn import textgenrnn
 import kaizen85modules
 
-modeL_files = {"weights_path": "./kaizen.hdf5", "vocab_path": "./textgenrnn_vocab.json",
+model_files = {"weights_path": "./kaizen.hdf5", "vocab_path": "./textgenrnn_vocab.json",
                "config_path": "./textgenrnn_config.json"}
 
 
@@ -16,7 +15,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
         bot.module_handler.add_param("aiTemp", 0.9)
 
         ok = True
-        for _, v in modeL_files:
+        for _, v in model_files.items():
             if not os.path.isfile(v):
                 ok = False
                 break
@@ -26,8 +25,8 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
             return
 
-        textgen = textgenrnn(weights_path=modeL_files["weights_path"], vocab_path=modeL_files["vocab_path"],
-                             config_path=modeL_files["config_path"])
+        textgen = textgenrnn(weights_path=model_files["weights_path"], vocab_path=model_files["vocab_path"],
+                             config_path=model_files["config_path"])
 
         class CommandAI(bot.module_handler.Command):
             name = "ai"
