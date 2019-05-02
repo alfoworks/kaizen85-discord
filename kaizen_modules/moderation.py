@@ -130,7 +130,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                         await bot.send_error_embed(message.channel, "Этот пользователь не в муте!")
                         return True
 
-                    await message.mentions[0].add_roles(role, reason="Unmute")
+                    await message.mentions[0].remove_roles(role, reason="Unmute")
                     await bot.send_ok_embed(bot.get_channel(MODLOG_CHANNEL_ID), "%s снял мут с %s." % (
                         message.author.mention, message.mentions[0].mention), "Информация")
 
