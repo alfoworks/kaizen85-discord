@@ -75,6 +75,8 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
                 embed: discord.Embed = await client.send_info_embed(title="Список модулей",
                                                                     return_embed=True, channel=message.channel)
 
+                embed.description = "Всего модулей: %s." % len(bot.module_handler.modules)
+
                 for _, mod in list(client.module_handler.modules.items()):
                     embed.add_field(name=mod.name, value=mod.desc, inline=False)
 
@@ -91,14 +93,18 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
                                                                     return_embed=True, channel=message.channel)
 
                 for _, command in bot.module_handler.commands.items():
-                        if "all" in keys or bot.check_permissions(message.author.guild_permissions, command.permissions):
-                            keys_user = []
-                            for key in command.keys:
-                                keys_user.append("[--%s]" % key)
+                    if "all" in keys or bot.check_permissions(message.author.guild_permissions, command.permissions):
+                        keys_user = []
+                        for key in command.keys:
+                            keys_user.append("[--%s]" % key)
 
-                            embed.add_field(
-                                name="%s%s %s %s" % (client.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
-                                value=command.desc, inline=False)
+                        embed.add_field(
+                            name="%s%s %s %s" % (client.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
+                            value=command.desc, inline=False)
+
+                embed.description = "Всего команд: %s, доступных вам: %s." % (len(bot.module_handler.commands), len(
+                    list(filter(lambda cmd: bot.check_permissions(message.author.guild_permissions, bot.module_handler.commands[cmd].permissions),
+                                bot.module_handler.commands))))
 
                 await message.channel.send(embed=embed)
                 return True

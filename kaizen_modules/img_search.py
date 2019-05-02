@@ -30,7 +30,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 if len(args) < 1:
                     return False
 
-                keyword = " ".join(args)
+                keyword = " ".join(message.clean_content.split()[1:])
 
                 resp = google_images_download.googleimagesdownload()
                 aip = resp.download(arguments={"keywords": keyword, "limit": 1, "output_directory": "img_search",
