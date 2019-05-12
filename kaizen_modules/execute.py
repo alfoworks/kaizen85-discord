@@ -52,7 +52,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
             args = "```Python Code```"
             permissions = ["administrator"]
 
-            async def run(self, message: discord.Message, args: str, keys):
+            async def run(self, message: discord.Message, args, keys):
                 code = message.content.split("```")
 
                 if len(code) < 3:

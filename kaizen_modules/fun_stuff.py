@@ -22,7 +22,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
             desc = "TextToEmoji - преобразовать буквы из текста в буквы-эмлдзи"
             args = "<text>"
 
-            async def run(self, message: discord.Message, args: str, keys):
+            async def run(self, message: discord.Message, args, keys):
                 if len(args) < 1:
                     return False
 
@@ -39,7 +39,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
             desc = "Выбрать рандомный вариант из предоставленных"
             args = "<1, 2, 3...>"
 
-            async def run(self, message: discord.Message, args: str, keys):
+            async def run(self, message: discord.Message, args, keys):
                 choices = " ".join(message.clean_content.split()[1:]).split(", ")
                 if len(choices) < 2:
                     return False

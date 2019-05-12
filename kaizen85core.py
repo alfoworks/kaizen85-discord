@@ -18,20 +18,20 @@ class Bot(kaizen85modules.KaizenBot):
     module_handler = kaizen85modules.ModuleHandler()
 
     def load_modules(self):
-        for file in os.listdir(client.MODULES_DIR):
+        for file in os.listdir(self.MODULES_DIR):
             if file.endswith(".py"):
-                module = __import__("%s.%s" % (client.MODULES_DIR, file[:-3]), globals(), locals(),
+                module = __import__("%s.%s" % (self.MODULES_DIR, file[:-3]), globals(), locals(),
                                     fromlist=["Module"]).Module()
                 self.module_handler.add_module(module)
 
-                self.logger.log("Loaded module \"%s\"" % module.name, client.logger.PrintColors.OKBLUE)
+                self.logger.log("Loaded module \"%s\"" % module.name, self.logger.PrintColors.OKBLUE)
 
         self.module_handler.add_module(BaseModule())
 
     async def run_modules(self):
         self.logger.log("\nRunning modules...", self.logger.PrintColors.WARNING)
         for _, mod in self.module_handler.modules.items():
-            await mod.run(client)
+            await mod.run(self)
 
 
 class BaseModule(kaizen85modules.ModuleHandler.Module):
@@ -65,19 +65,19 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
                     if not bot.check_permissions(message.author.guild_permissions, ["administrator"]):
                         raise bot.AccessDeniedException()
 
-                    for name, _ in list(client.module_handler.modules.items()):
+                    for name, _ in list(bot.module_handler.modules.items()):
                         bot.module_handler.unload_module(name)
 
                     bot.load_modules()
                     await bot.run_modules()
                     return True
 
-                embed: discord.Embed = await client.send_info_embed(title="Список модулей",
-                                                                    return_embed=True, channel=message.channel)
+                embed: discord.Embed = await bot.send_info_embed(title="Список модулей",
+                                                                 return_embed=True, channel=message.channel)
 
                 embed.description = "Всего модулей: %s." % len(bot.module_handler.modules)
 
-                for _, mod in list(client.module_handler.modules.items()):
+                for _, mod in list(bot.module_handler.modules.items()):
                     embed.add_field(name=mod.name, value=mod.desc, inline=False)
 
                 await message.channel.send(embed=embed)
@@ -89,8 +89,8 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
             keys = ["all"]
 
             async def run(self, message, args, keys):
-                embed: discord.Embed = await client.send_info_embed(title="Список команд",
-                                                                    return_embed=True, channel=message.channel)
+                embed: discord.Embed = await bot.send_info_embed(title="Список команд",
+                                                                 return_embed=True, channel=message.channel)
 
                 for _, command in bot.module_handler.commands.items():
                     if "all" in keys or bot.check_permissions(message.author.guild_permissions, command.permissions):
@@ -99,11 +99,12 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
                             keys_user.append("[--%s]" % key)
 
                         embed.add_field(
-                            name="%s%s %s %s" % (client.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
+                            name="%s%s %s %s" % (bot.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
                             value=command.desc, inline=False)
 
                 embed.description = "Всего команд: %s, доступных вам: %s." % (len(bot.module_handler.commands), len(
-                    list(filter(lambda cmd: bot.check_permissions(message.author.guild_permissions, bot.module_handler.commands[cmd].permissions),
+                    list(filter(lambda cmd: bot.check_permissions(message.author.guild_permissions,
+                                                                  bot.module_handler.commands[cmd].permissions),
                                 bot.module_handler.commands))))
 
                 await message.channel.send(embed=embed)
@@ -136,8 +137,6 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
                         return True
 
                     param = bot.module_handler.params[args[1]]
-                    val = None
-
                     try:
                         val = BaseModule.parse_value(" ".join(args[2:]), type(param))
                     except ValueError:
@@ -156,8 +155,8 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
 
                     return True
 
-                embed: discord.Embed = await client.send_info_embed(title="Список параметров",
-                                                                    return_embed=True, channel=message.channel)
+                embed: discord.Embed = await bot.send_info_embed(title="Список параметров",
+                                                                 return_embed=True, channel=message.channel)
 
                 for k, v in bot.module_handler.params.items():
                     embed.add_field(name="%s [%s]" % (k, type(v).__name__), value=v, inline=False)

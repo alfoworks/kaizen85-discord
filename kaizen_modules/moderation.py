@@ -23,9 +23,13 @@ def pluralize_russian(number, nom_sing, gen_sing, gen_pl):
         return gen_pl
 
 
-class TempMutedMember:
-    id = 0
-    unmute_time = 0
+class MutedUser:
+    user_id = 0
+    guild_id = 0
+
+    def __init__(self, user_id, guild_id):
+        self.user_id = user_id
+        self.guild_id = guild_id
 
 
 class Module(kaizen85modules.ModuleHandler.Module):
@@ -41,7 +45,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
             args = "<1 - 100> [@пользователь]"
             permissions = ["manage_messages"]
 
-            async def run(self, message: discord.Message, args: str, keys):
+            async def run(self, message: discord.Message, args, keys):
                 if len(args) < 1:
                     return False
 
@@ -56,6 +60,12 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 def check(msg):
                     return True if len(message.mentions) < 1 else msg.author == message.mentions[0]
 
+                switch_kgbmode = False
+                if "kgbmode_enabled" in bot.module_handler.params and bot.module_handler.params[
+                    "kgbmode_enabled"] is True:
+                    bot.module_handler.params["kgbmode_enabled"] = False
+                    switch_kgbmode = True
+
                 await message.delete()
 
                 deleted = await message.channel.purge(limit=limit, check=check)
@@ -65,6 +75,19 @@ class Module(kaizen85modules.ModuleHandler.Module):
                                                                                                    "сообщения",
                                                                                                    "сообщений")))
 
+                if switch_kgbmode is True:
+                    bot.module_handler.params["kgbmode_enabled"] = True
+
+                await bot.send_info_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                          "%s удалил %s %s из канала %s." % (message.author.mention,
+                                                                             len(deleted),
+                                                                             pluralize_russian(
+                                                                                 len(deleted),
+                                                                                 "сообщение",
+                                                                                 "сообщения",
+                                                                                 "сообщений"),
+                                                                             message.channel), "Очистка сообщений")
+
                 return True
 
         class CommandMute(bot.module_handler.Command):
@@ -73,7 +96,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
             args = "<@пользователь> [причина]"
             permissions = ["manage_roles"]
 
-            async def run(self, message: discord.Message, args: str, keys):
+            async def run(self, message: discord.Message, args, keys):
                 if len(message.mentions) < 1:
                     return False
 
@@ -99,43 +122,66 @@ class Module(kaizen85modules.ModuleHandler.Module):
                     await bot.send_error_embed(message.channel, "Вы не можете замутить этого пользователя.")
                     return True
 
-                reason = None
+                reason = "Плохое поведение"
 
                 if len(args) > 1:
                     reason = " ".join(args[1:])
 
                 await message.mentions[0].add_roles(role, reason=reason)
-                await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID), "%s был заткнут %s навсегда!" % (
-                    message.mentions[0].mention, message.author.mention), "Информация")
+
+                await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                           "%s был заткнут %s по причине \"%s\"." % (
+                                               message.mentions[0].mention, message.author.mention, reason),
+                                           "Наказания")
+
+                for user in bot.module_handler.params["moderation_mutes"]:
+                    if user.user_id == message.mentions[0].id:
+                        return True
+
+                muted_user = MutedUser(message.mentions[0].id, message.author.guild.id)
+                bot.module_handler.params["moderation_mutes"].append(muted_user)
+                bot.module_handler.save_params()
 
                 return True
 
-            class CommandUnmute(bot.module_handler.Command):
-                name = "unmute"
-                desc = "Снять мут с пользователя."
-                args = "<@пользователь>"
-                permissions = ["manage_roles"]
+        class CommandUnmute(bot.module_handler.Command):
+            name = "unmute"
+            desc = "Снять мут с пользователя."
+            args = "<@пользователь>"
+            permissions = ["manage_roles"]
 
-                async def run(self, message: discord.Message, args: str, keys):
-                    if len(message.mentions) < 1:
-                        return False
+            async def run(self, message: discord.Message, args, keys):
+                if len(message.mentions) < 1:
+                    return False
 
-                    role = message.guild.get_role(MUTED_ROLE_ID)
+                role = message.guild.get_role(MUTED_ROLE_ID)
 
-                    if role is None:
-                        await bot.send_error_embed(message.channel, "Роль с ID %s не найдена!" % MUTED_ROLE_ID)
-                        return True
-
-                    if role not in message.mentions[0].roles:
-                        await bot.send_error_embed(message.channel, "Этот пользователь не в муте!")
-                        return True
-
-                    await message.mentions[0].remove_roles(role, reason="Unmute")
-                    await bot.send_ok_embed(bot.get_channel(MODLOG_CHANNEL_ID), "%s снял мут с %s." % (
-                        message.author.mention, message.mentions[0].mention), "Информация")
-
+                if role is None:
+                    await bot.send_error_embed(message.channel, "Роль с ID %s не найдена!" % MUTED_ROLE_ID)
                     return True
+
+                if role not in message.mentions[0].roles:
+                    await bot.send_error_embed(message.channel, "Этот пользователь не в муте!")
+                    return True
+
+                await message.mentions[0].remove_roles(role, reason="Unmute")
+
+                await bot.send_ok_embed(bot.get_channel(MODLOG_CHANNEL_ID), "%s снял мут с %s." % (
+                    message.author.mention, message.mentions[0].mention), "Наказания")
+
+                for user in list(bot.module_handler.params["moderation_mutes"]):
+                    if user.user_id == message.mentions[0].id:
+                        bot.module_handler.params["moderation_mutes"].remove(user)
+                        return True
+
+                return True
 
         bot.module_handler.add_command(CommandPurge(), self)
         bot.module_handler.add_command(CommandMute(), self)
-        bot.module_handler.add_command(CommandMute(), self)
+        bot.module_handler.add_command(CommandUnmute(), self)
+
+    async def on_member_join(self, member: discord.Member, bot):
+        for user in bot.module_handler.params["moderation_mutes"]:
+            if user.user_id == member.id:
+                await member.add_roles(member.guild.get_role(MUTED_ROLE_ID), reason="User is muted")
+                break

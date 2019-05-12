@@ -26,7 +26,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
             args = "<поисковый запрос>"
             keys = ["no-nsfw-check"]
 
-            async def run(self, message: discord.Message, args: str, keys):
+            async def run(self, message: discord.Message, args, keys):
                 if len(args) < 1:
                     return False
 

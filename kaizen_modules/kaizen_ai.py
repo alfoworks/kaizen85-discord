@@ -33,7 +33,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
             desc = "Пожилой ИИ"
             args = "[prefix]"
 
-            async def run(self, message: discord.Message, args: str, keys):
+            async def run(self, message: discord.Message, args, keys):
                 prefix = ""
                 if len(args) > 0:
                     if args[0][:7] == "prefix=":

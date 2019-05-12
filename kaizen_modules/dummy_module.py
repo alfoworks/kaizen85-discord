@@ -1,4 +1,3 @@
-from typing import List
 import discord
 import kaizen85modules
 
@@ -45,7 +44,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
             # ахтунг: если ввести неправильный перм, то все может закончится ошибкой.
 
             # метод команды, выполняется, думаю, понтно когда.
-            async def run(self, message: discord.Message, args: str, keys: List[str]) -> bool:
+            async def run(self, message: discord.Message, args, keys) -> bool:
                 # Универсальная команда для отправления эмбедов с заголовком, авой бота и текстом.
                 # Подробнее в kaizen85modules.py
                 await bot.send_info_embed(message.channel, bot.module_handler.params["test_param"], "Проверка")
