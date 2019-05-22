@@ -3,8 +3,8 @@ import discord
 from textgenrnn import textgenrnn
 import kaizen85modules
 
-model_files = {"weights_path": "./kaizen.hdf5", "vocab_path": "./textgenrnn_vocab.json",
-               "config_path": "./textgenrnn_config.json"}
+model_files = ["kaizen", "icarus"]
+models = {}
 
 
 class Module(kaizen85modules.ModuleHandler.Module):
@@ -25,8 +25,8 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
             return
 
-        textgen = textgenrnn(weights_path=model_files["weights_path"], vocab_path=model_files["vocab_path"],
-                             config_path=model_files["config_path"])
+        for model in model_files:
+            models[model] = textgenrnn(weights_path="%s_weights.hdf5" % model, vocab_path="%s_vocab.hdf5" % model, config_path="%s_config.hdf5" % model)
 
         class CommandAI(bot.module_handler.Command):
             name = "ai"
@@ -39,7 +39,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                     if args[0][:7] == "prefix=":
                         prefix = message.content[11:]
 
-                ai_text = "".join(textgen.generate(temperature=bot.module_handler.params["aiTemp"], return_as_list=True,
+                ai_text = "".join(models["kaizen"].generate(temperature=bot.module_handler.params["aiTemp"], return_as_list=True,
                                                    prefix=prefix))
                 await bot.send_info_embed(message.channel, ai_text, "Киберсыч")
 
