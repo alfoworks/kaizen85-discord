@@ -1,10 +1,7 @@
-import os
 import discord
-from textgenrnn import textgenrnn
-import kaizen85modules
+import textgenrnn
 
-model_files = ["kaizen", "icarus"]
-models = {}
+import kaizen85modules
 
 
 class Module(kaizen85modules.ModuleHandler.Module):
@@ -12,37 +9,59 @@ class Module(kaizen85modules.ModuleHandler.Module):
     desc = "Пожилой киберсыч нового поколения!"
 
     async def run(self, bot: kaizen85modules.KaizenBot):
-        bot.module_handler.add_param("aiTemp", 0.9)
+        class AICommand(kaizen85modules.ModuleHandler.Command):
+            title = ""
+            file_name = ""
+            color = 0
+            model: textgenrnn.textgenrnn
 
-        ok = True
-        for _, v in model_files.items():
-            if not os.path.isfile(v):
-                ok = False
-                break
+            model_loaded = True
 
-        if not ok:
-            bot.logger.log("[Kaizen_AI] Can't find model files. The command will not load.")
+            name = ""
+            desc = "ИИ %s"
+            args = "[prefix=<prefix>]"
 
-            return
+            def __init__(self, title, file_name, command_name, color):
+                self.title = title
+                self.file_name = file_name
+                self.name = command_name
+                self.color = color
 
-        for model in model_files:
-            models[model] = textgenrnn(weights_path="%s_weights.hdf5" % model, vocab_path="%s_vocab.hdf5" % model, config_path="%s_config.hdf5" % model)
+                self.desc = self.desc % title
 
-        class CommandAI(bot.module_handler.Command):
-            name = "ai"
-            desc = "Пожилой ИИ"
-            args = "[prefix]"
+                try:
+                    self.model = textgenrnn.textgenrnn(weights_path="%s_weights.hdf5" % file_name,
+                                                       vocab_path="%s_vocab.json" % file_name,
+                                                       config_path="%s_config.json" % file_name)
+                except FileNotFoundError:
+                    bot.logger.log("Could not find model files for AI %s. The command will not work." % title,
+                                   bot.logger.PrintColors.FAIL)
+
+                    self.model_loaded = False
+                else:
+                    bot.logger.log("Initialized AI with name %s." % self.title, bot.logger.PrintColors.OKBLUE)
 
             async def run(self, message: discord.Message, args, keys):
-                prefix = ""
-                if len(args) > 0:
-                    if args[0][:7] == "prefix=":
-                        prefix = message.content[11:]
+                if not self.model_loaded:
+                    await bot.send_error_embed(message.channel, "Модель данного ИИ не загружена.")
+                    return True
 
-                ai_text = "".join(models["kaizen"].generate(temperature=bot.module_handler.params["aiTemp"], return_as_list=True,
-                                                   prefix=prefix))
-                await bot.send_info_embed(message.channel, ai_text, "Киберсыч")
+                prefix = None
 
+                if len(args) > 0 and args[0].startswith("prefix="):
+                    prefix = " ".join(args)[7:]
+
+                embed = bot.get_special_embed(self.color, "ИИ %s" % self.title)
+                embed.description = \
+                    self.model.generate(temperature=bot.module_handler.params["aiTemp"], return_as_list=True,
+                                        prefix=prefix)[0]
+
+                await message.channel.send(embed=embed)
                 return True
 
-        bot.module_handler.add_command(CommandAI(), self)
+        bot.module_handler.add_param("aiTemp", 0.9)
+
+        models = [AICommand("Kaizen", "kaizen", "kz", 0x64E3E1), AICommand("Icarus", "icarus", "ic", 0xFFD700)]
+
+        for model in models:
+            bot.module_handler.add_command(model, self)

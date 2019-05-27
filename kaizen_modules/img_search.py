@@ -1,9 +1,10 @@
 import os
 
 import discord
-import kaizen85modules
 from google_images_download import google_images_download
 from nudenet import NudeDetector
+
+import kaizen85modules
 
 detector_model = "detector_model"
 
@@ -63,8 +64,8 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 with open(img_path, "rb") as f:
                     img = discord.File(f, spoiler=is_nsfw)
 
-                    await message.channel.send("%s, картинка по запросу \"%s\" успешно найдена!%s%s" % (
-                        message.author.mention, keyword,
+                    await message.channel.send("Картинка по запросу \"%s\": (запросил: %s)%s%s" % (
+                        keyword, message.author.mention,
                         "\n⚠️Обнаружен NSFW контент! Картинка спрятана под спойлер. Открывайте на свой страх и риск! ⚠️" if is_nsfw else "", "\n⚠️Проверка NSFW отключена! Проверьте логи. ⚠️" if not detector else ""),
                                                file=img)
 
