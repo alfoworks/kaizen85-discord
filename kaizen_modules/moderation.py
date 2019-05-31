@@ -169,7 +169,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
         class CommandTempMute(bot.module_handler.Command):
             name = "tempmute"
-            desc = "Замутить пользователя навсегда."
+            desc = "Замутить пользователя на определенное время."
             args = "<@пользователь> [длительность в секундах] [причина]"
             permissions = ["manage_roles"]
 
@@ -201,7 +201,10 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 reason = "Плохое поведение"
                 if len(args) < 2:
                     return False
-                duration = int(args[1])
+                try:
+                    duration = int(args[1])
+                except ValueError:
+                    return False
                 deadline = time.time() + duration
                 if len(args) > 2:
                     reason = " ".join(args[2:])
