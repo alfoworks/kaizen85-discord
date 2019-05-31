@@ -60,7 +60,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
     async def run(self, bot: kaizen85modules.KaizenBot):
         bot.module_handler.add_param("moderation_mutes", [])
-        bot.module_handler.add_background_task(background_task(bot))
+        bot.module_handler.add_background_task(self, background_task(bot))
 
         class CommandPurge(bot.module_handler.Command):
             name = "purge"
