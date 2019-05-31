@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import discord
@@ -35,23 +36,43 @@ class MutedUser:
 
 
 class TempMutedUser(MutedUser):
-    duration = 0
+    deadline = 0
 
     def __init__(self, user_id, guild_id, deadline):
         super().__init__(user_id, guild_id)
         self.deadline = deadline
 
 
+"""
 async def background_task(bot):
     while True:
+
+        asyncio.sleep(5)
+"""
+
+"""
+async def background_task(bot):
+    while True:
+        print("Tempmute cycle")
         for muted_user in bot.module_handler.params["moderation_mutes"]:
+            print(time.time(), type(muted_user).__name__)
+            print(muted_user.user_id)
             if isinstance(muted_user, TempMutedUser):
+                print(muted_user.deadline)
                 if muted_user.deadline < time.time():
                     role = await bot.get_guild(muted_user.guild_id).get_role(MUTED_ROLE_ID)
                     user: discord.Member = await bot.get_user(muted_user.user_id)
                     await user.remove_roles(role, reason="Unmute: timed out")
                     bot.module_handler.params["moderation_mutes"].remove(muted_user)
                     bot.module_handler.save_params()
+        await asyncio.sleep(5)
+"""
+
+
+async def background_task(bot):
+    while True:
+        print("test")
+        await asyncio.sleep(5)
 
 
 class Module(kaizen85modules.ModuleHandler.Module):
@@ -212,8 +233,8 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 await message.mentions[0].add_roles(role, reason=reason)
 
                 await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
-                                           "%s был заткнут %s по причине \"%s\"." % (
-                                               message.mentions[0].mention, message.author.mention, reason),
+                                           "%s был заткнут %s по причине \"%s\" на %s секунд" % (
+                                               message.mentions[0].mention, message.author.mention, reason, duration),
                                            "Наказания")
 
                 for user in bot.module_handler.params["moderation_mutes"]:
