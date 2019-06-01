@@ -45,18 +45,18 @@ class TempMutedUser(MutedUser):
 
 async def background_task(bot):
     while True:
-        print("Tempmute cycle")
         for muted_user in bot.module_handler.params["moderation_mutes"]:
-            print(time.time(), type(muted_user).__name__)
-            print(muted_user.user_id)
             if isinstance(muted_user, TempMutedUser):
-                print(muted_user.deadline)
                 if muted_user.deadline < time.time():
                     role = await bot.get_guild(muted_user.guild_id).get_role(MUTED_ROLE_ID)
                     user: discord.Member = await bot.get_user(muted_user.user_id)
                     await user.remove_roles(role, reason="Unmute: timed out")
                     bot.module_handler.params["moderation_mutes"].remove(muted_user)
                     bot.module_handler.save_params()
+                    await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                               "%s был размучен (закончилось время мута)" % (
+                                                   user.mention),
+                                               "Наказания")
         await asyncio.sleep(5)
 
 
