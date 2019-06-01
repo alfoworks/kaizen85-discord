@@ -210,8 +210,8 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
                 reason = "Плохое поведение"
                 unit_selected = False
-                # if len(args) < 2:  # кажется, это не нужно, ибо если это условие убрать, но оно выполнится,
-                #    return False    # то кинет ValueError и все= вернет False
+                if len(args) < 2:
+                    return False
                 try:
                     duration = int(args[1])
                 except ValueError:
