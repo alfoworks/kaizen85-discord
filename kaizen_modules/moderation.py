@@ -45,18 +45,19 @@ class TempMutedUser(MutedUser):
 
 async def background_task(bot):  # сори за говнокод
     while True:
-        for muted_user in bot.module_handler.params["moderation_mutes"]:
-            if isinstance(muted_user, TempMutedUser):
-                if muted_user.deadline < time.time():
-                    role = await bot.get_guild(muted_user.guild_id).get_role(MUTED_ROLE_ID)
-                    user: discord.Member = await bot.get_user(muted_user.user_id)
-                    await user.remove_roles(role, reason="Unmute: timed out")
-                    bot.module_handler.params["moderation_mutes"].remove(muted_user)
-                    bot.module_handler.save_params()
-                    await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
-                                               "%s был размучен (закончилось время мута)" % (
-                                                   user.mention),
-                                               "Наказания")
+        for muted_user in bot.module_handler.params["moderation_tempmutes"]:
+            if muted_user.deadline < time.time():
+                guild: discord.Guild = bot.get_guild(muted_user.guild_id)
+                role: discord.Role = guild.get_role(MUTED_ROLE_ID)
+                member: discord.Member = guild.get_member(muted_user.user_id)
+
+                await member.remove_roles(role, reason="Unmute: timed out")
+                await bot.send_info_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                          "%s был размучен (закончилось время мута)" % member.mention,
+                                          "Наказания")
+
+                bot.module_handler.params["moderation_tempmutes"].remove(muted_user)
+                bot.module_handler.save_params()
         await asyncio.sleep(5)
 
 
@@ -66,6 +67,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
     async def run(self, bot: kaizen85modules.KaizenBot):
         bot.module_handler.add_param("moderation_mutes", [])
+        bot.module_handler.add_param("moderation_tempmutes", [])
         bot.module_handler.add_background_task(self, background_task(bot))
 
         class CommandPurge(bot.module_handler.Command):
@@ -207,38 +209,43 @@ class Module(kaizen85modules.ModuleHandler.Module):
                     return True
 
                 reason = "Плохое поведение"
-                if len(args) < 2:
-                    return False
+                unit_selected = False
+                # if len(args) < 2:  # кажется, это не нужно, ибо если это условие убрать, но оно выполнится,
+                #    return False    # то кинет ValueError и все= вернет False
                 try:
                     duration = int(args[1])
                 except ValueError:
                     return False
                 else:
-                    if args[2] in self.duration_variants:
-                        duration = duration * self.duration_variants[args[2]]
-
+                    if len(args) > 2:
+                        two_arg: str = args[2]
+                        if two_arg.upper() in self.duration_variants:
+                            unit_selected = True
+                            duration = duration * self.duration_variants[two_arg]
                 deadline = time.time() + duration
-                if len(args) > 2:
-                    reason = " ".join(args[2:])
+                if unit_selected:
+                    if len(args) > 3:
+                        reason = " ".join(args[3:])
+                else:
+                    if len(args) > 2:
+                        reason = " ".join(args[2:])
 
                 await message.mentions[0].add_roles(role, reason=reason)
 
                 await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
-                                           "%s был заткнут %s по причине \"%s\" на %s секунд (%s %s)" % (
+                                           "%s был заткнут %s по причине \"%s\" на %s секунд" % (
                                                message.mentions[0].mention,
                                                message.author.mention,
                                                reason,
-                                               duration,
-                                               args[1],
-                                               args[2]),
+                                               duration,) + (" (%s %s)" % (args[1], args[2]) if unit_selected else ""),
                                            "Наказания")
 
-                for user in bot.module_handler.params["moderation_mutes"]:
+                for user in bot.module_handler.params["moderation_tempmutes"]:
                     if user.user_id == message.mentions[0].id:
                         return True
 
                 muted_user = TempMutedUser(message.mentions[0].id, message.author.guild.id, deadline)
-                bot.module_handler.params["moderation_mutes"].append(muted_user)
+                bot.module_handler.params["moderation_tempmutes"].append(muted_user)
                 bot.module_handler.save_params()
 
                 return True
@@ -271,6 +278,13 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 for user in list(bot.module_handler.params["moderation_mutes"]):
                     if user.user_id == message.mentions[0].id:
                         bot.module_handler.params["moderation_mutes"].remove(user)
+                        bot.module_handler.save_params()
+                        return True
+
+                for user in list(bot.module_handler.params["moderation_tempmutes"]):
+                    if user.user_id == message.mentions[0].id:
+                        bot.module_handler.params["moderation_tempmutes"].remove(user)
+                        bot.module_handler.save_params()
                         return True
 
                 return True
