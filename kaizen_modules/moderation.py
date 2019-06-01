@@ -218,8 +218,8 @@ class Module(kaizen85modules.ModuleHandler.Module):
                     return False
                 else:
                     if len(args) > 2:
-                        two_arg: str = args[2]
-                        if two_arg.upper() in self.duration_variants:
+                        two_arg: str = args[2].upper()
+                        if two_arg in self.duration_variants:
                             unit_selected = True
                             duration = duration * self.duration_variants[two_arg]
                 deadline = time.time() + duration
