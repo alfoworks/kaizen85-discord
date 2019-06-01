@@ -43,7 +43,7 @@ class TempMutedUser(MutedUser):
         self.deadline = deadline
 
 
-async def background_task(bot):
+async def background_task(bot):  # сори за говнокод
     while True:
         for muted_user in bot.module_handler.params["moderation_mutes"]:
             if isinstance(muted_user, TempMutedUser):
