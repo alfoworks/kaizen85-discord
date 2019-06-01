@@ -66,8 +66,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
     async def run(self, bot: kaizen85modules.KaizenBot):
         bot.module_handler.add_param("moderation_mutes", [])
-
-        # еще не готово # bot.module_handler.add_background_task(self, background_task(bot))
+        bot.module_handler.add_background_task(self, background_task(bot))
 
         class CommandPurge(bot.module_handler.Command):
             name = "purge"
@@ -177,8 +176,10 @@ class Module(kaizen85modules.ModuleHandler.Module):
         class CommandTempMute(bot.module_handler.Command):
             name = "tempmute"
             desc = "Замутить пользователя на определенное время."
-            args = "<@пользователь> [длительность в секундах] [причина]"
+            args = "<@пользователь> [длительность] [валюта длительности] [причина]"
             permissions = ["manage_roles"]
+
+            duration_variants = {"S": 1, "M": 60, "H": 3600, "D": 84600, "W": 592200}
 
             async def run(self, message: discord.Message, args, keys):
                 if len(message.mentions) < 1:
@@ -212,6 +213,10 @@ class Module(kaizen85modules.ModuleHandler.Module):
                     duration = int(args[1])
                 except ValueError:
                     return False
+                else:
+                    if args[2] in self.duration_variants:
+                        duration = duration * self.duration_variants[args[2]]
+
                 deadline = time.time() + duration
                 if len(args) > 2:
                     reason = " ".join(args[2:])
@@ -219,8 +224,13 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 await message.mentions[0].add_roles(role, reason=reason)
 
                 await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
-                                           "%s был заткнут %s по причине \"%s\" на %s секунд" % (
-                                               message.mentions[0].mention, message.author.mention, reason, duration),
+                                           "%s был заткнут %s по причине \"%s\" на %s секунд (%s %s)" % (
+                                               message.mentions[0].mention,
+                                               message.author.mention,
+                                               reason,
+                                               duration,
+                                               args[1],
+                                               args[2]),
                                            "Наказания")
 
                 for user in bot.module_handler.params["moderation_mutes"]:
@@ -267,7 +277,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
         bot.module_handler.add_command(CommandPurge(), self)
         bot.module_handler.add_command(CommandMute(), self)
-        # еще не готово # bot.module_handler.add_command(CommandTempMute(), self)
+        bot.module_handler.add_command(CommandTempMute(), self)
         bot.module_handler.add_command(CommandUnmute(), self)
 
     async def on_member_join(self, member: discord.Member, bot):
