@@ -178,7 +178,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
         class CommandTempMute(bot.module_handler.Command):
             name = "tempmute"
             desc = "Замутить пользователя на определенное время."
-            args = "<@пользователь> [длительность] [валюта длительности] [причина]"
+            args = "<@пользователь> <длительность> [единица длительности] [причина]"
             permissions = ["manage_roles"]
 
             duration_variants = {"S": 1, "M": 60, "H": 3600, "D": 84600, "W": 592200}
