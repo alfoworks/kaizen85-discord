@@ -10,6 +10,10 @@ import kaizen85modules
 MUTED_ROLE_ID = 397808474320404482
 MODLOG_CHANNEL_ID = 485572652099174401
 
+declensions_dict: dict = {'s': ["секунда", "секунды", "секунд"], 'm': ["минута", "минуты", "минуь"],
+                          'h': ["час", "часа", "часов"], 'd': ["день", "дня", "дней"],
+                          'w': ["неделя", "недели", "недель"]}
+
 
 def pluralize_russian(number, nom_sing, gen_sing, gen_pl):
     s_last_digit = str(number)[-1]
@@ -248,32 +252,9 @@ class Module(kaizen85modules.ModuleHandler.Module):
                         roles.append(member_role.id)
 
                 # Нужен рефакторинг этой хуйни
-                unit = ""
-                if args[2].lower() == "s":
-                    unit = pluralize_russian(duration,
-                                             "секунда",
-                                             "секунды",
-                                             "секунд")
-                elif args[2].lower() == "m":
-                    unit = pluralize_russian(duration,
-                                             "минута",
-                                             "минуты",
-                                             "минут")
-                elif args[2].lower() == "h":
-                    unit = pluralize_russian(duration,
-                                             "час",
-                                             "часа",
-                                             "часов")
-                elif args[2].lower() == "d":
-                    unit = pluralize_russian(duration,
-                                             "день",
-                                             "дня",
-                                             "дней")
-                elif args[2].lower() == "w":
-                    unit = pluralize_russian(duration,
-                                             "неделя",
-                                             "недели",
-                                             "недель")
+                # Будет сделано, шеф
+                declensions = declensions_dict[args[2].lower()]
+                unit = pluralize_russian(duration, declensions[0], declensions[1], declensions[2])
 
                 await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
                                            "%s был заткнут %s по причине \"%s\" на %s %s." % (
