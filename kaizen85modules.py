@@ -47,8 +47,7 @@ class KaizenBot(discord.Client):
 
         return embed
 
-    async def send_info_embed(self, channel: discord.TextChannel = None, text: str = None, title: str = "Инфо",
-                              return_embed=False):
+    async def send_info_embed(self, channel: discord.TextChannel, text: str = None, title: str = "Инфо"):
         role = channel.guild.me.top_role
         color = 0xb63a6b
 
@@ -58,30 +57,43 @@ class KaizenBot(discord.Client):
         embed = self.get_special_embed(title=title, color=color)
         embed.description = text
 
-        if return_embed:
-            return embed
-        else:
-            await channel.send(embed=embed)
+        await channel.send(embed=embed)
 
-    async def send_error_embed(self, channel: discord.TextChannel = None, text: str = None, title: str = "Ошибка",
-                               return_embed=False):
+    async def send_error_embed(self, channel: discord.TextChannel, text: str = None, title: str = "Ошибка"):
         embed = self.get_special_embed(0xFF4C4C, title=title)
         embed.description = text
 
-        if return_embed:
-            return embed
-        else:
-            await channel.send(embed=embed)
+        await channel.send(embed=embed)
 
-    async def send_ok_embed(self, channel: discord.TextChannel = None, text: str = None, title: str = "ОК",
-                            return_embed=False):
+    async def send_ok_embed(self, channel: discord.TextChannel, text: str = None, title: str = "ОК"):
         embed = self.get_special_embed(0x6AAF6A, title=title)
         embed.description = text
 
-        if return_embed:
-            return embed
-        else:
-            await channel.send(embed=embed)
+        await channel.send(embed=embed)
+
+    def get_info_embed(self, guild: discord.Guild, text: str = None, title: str = "Инфо"):
+        role = guild.me.top_role
+        color = 0xb63a6b
+
+        if role:
+            color = role.color.value
+
+        embed = self.get_special_embed(title=title, color=color)
+        embed.description = text
+
+        return embed
+
+    def get_error_embed(self, text: str = None, title: str = "Ошибка"):
+        embed = self.get_special_embed(0xFF4C4C, title=title)
+        embed.description = text
+
+        return embed
+
+    def get_ok_embed(self, text: str = None, title: str = "ОК"):
+        embed = self.get_special_embed(0x6AAF6A, title=title)
+        embed.description = text
+
+        return embed
 
     @staticmethod
     def check_permissions(member_perms: discord.Permissions, perms_list) -> bool:
@@ -119,7 +131,17 @@ class ModuleHandler:
         async def run(self, bot: KaizenBot):
             pass
 
-        # Discord Events
+        def on_unload(self):
+            pass
+
+        """
+        Ивенты дискорда.
+        Дабы не было вопросов скажу, что это сделано для того, 
+        чтобы один модуль не смог заместить ивент другого модуля или основы бота
+        (kaizen85core), так уж работает @client.event.
+        """
+
+        # TODO: если будет скучно, то можно добавить приведение типов.
 
         async def on_message(self, message: discord.Message, bot: KaizenBot):
             pass
@@ -131,6 +153,144 @@ class ModuleHandler:
             pass
 
         async def on_member_remove(self, member: discord.Member, bot: KaizenBot):
+            pass
+
+        async def on_disconnect(self, bot: KaizenBot):
+            pass
+
+        async def on_resumed(self, bot: KaizenBot):
+            pass
+
+        async def on_error(self, event, bot: KaizenBot, *args, **kwargs):
+            pass
+
+        async def on_socket_raw_receive(self, msg, bot: KaizenBot):
+            pass
+
+        async def on_socket_raw_send(self, payload, bot: KaizenBot):
+            pass
+
+        async def on_typing(self, channel, user, when, bot: KaizenBot):
+            pass
+
+        async def on_bulk_message_delete(self, messages, bot: KaizenBot):
+            pass
+
+        async def on_raw_message_delete(self, payload, bot: KaizenBot):
+            pass
+
+        async def on_raw_bulk_message_delete(self, payload, bot: KaizenBot):
+            pass
+
+        async def on_raw_message_edit(self, payload, bot: KaizenBot):
+            pass
+
+        async def on_reaction_add(self, reaction, user, bot: KaizenBot):
+            pass
+
+        async def on_raw_reaction_add(self, payload, bot: KaizenBot):
+            pass
+
+        async def on_reaction_remove(self, reaction, user, bot: KaizenBot):
+            pass
+
+        async def on_raw_reaction_remove(self, payload, bot: KaizenBot):
+            pass
+
+        async def on_reaction_clear(self, message, reactions, bot: KaizenBot):
+            pass
+
+        async def on_raw_reaction_clear(self, payload, bot: KaizenBot):
+            pass
+
+        async def on_private_channel_delete(self, channel, bot: KaizenBot):
+            pass
+
+        async def on_private_channel_create(self, channel, bot: KaizenBot):
+            pass
+
+        async def on_private_channel_update(self, before, after, bot: KaizenBot):
+            pass
+
+        async def on_private_channel_pins_update(self, channel, last_pin, bot: KaizenBot):
+            pass
+
+        async def on_guild_channel_delete(self, channel, bot: KaizenBot):
+            pass
+
+        async def on_guild_channel_create(self, channel, bot: KaizenBot):
+            pass
+
+        async def on_guild_channel_update(self, before, after, bot: KaizenBot):
+            pass
+
+        async def on_guild_channel_pins_update(self, channel, last_pin, bot: KaizenBot):
+            pass
+
+        async def on_guild_integrations_update(self, guild, bot: KaizenBot):
+            pass
+
+        async def on_webhooks_update(self, channel, bot: KaizenBot):
+            pass
+
+        async def on_member_join(self, member, bot: KaizenBot):
+            pass
+
+        async def on_member_update(self, before, after, bot: KaizenBot):
+            pass
+
+        async def on_user_update(self, before, after, bot: KaizenBot):
+            pass
+
+        async def on_guild_join(self, guild, bot: KaizenBot):
+            pass
+
+        async def on_guild_remove(self, guild, bot: KaizenBot):
+            pass
+
+        async def on_guild_update(self, before, after, bot: KaizenBot):
+            pass
+
+        async def on_guild_role_create(self, role, bot: KaizenBot):
+            pass
+
+        async def on_guild_role_delete(self, role, bot: KaizenBot):
+            pass
+
+        async def on_guild_role_update(self, before, after, bot: KaizenBot):
+            pass
+
+        async def on_guild_emojis_update(self, guild, before, after, bot: KaizenBot):
+            pass
+
+        async def on_guild_available(self, guild, bot: KaizenBot):
+            pass
+
+        async def on_guild_unavailable(self, guild, bot: KaizenBot):
+            pass
+
+        async def on_voice_state_update(self, member, before, after, bot: KaizenBot):
+            pass
+
+        async def on_member_ban(self, guild, user, bot: KaizenBot):
+            pass
+
+        async def on_member_unban(self, guild, user, bot: KaizenBot):
+            pass
+
+        async def on_group_join(self, channel, user, bot: KaizenBot):
+            pass
+
+        async def on_group_remove(self, channel, user, bot: KaizenBot):
+            pass
+
+        async def on_relationship_add(self, relationship, bot: KaizenBot):
+            pass
+
+        async def on_relationship_remove(self, relationship, bot: KaizenBot):
+            pass
+
+        async def on_relationship_update(self, before, after, bot: KaizenBot):
             pass
 
     class Command:
@@ -160,6 +320,8 @@ class ModuleHandler:
             raise ValueError("Can't remove a module that doesn't exist (%s)." % module_name)
 
         print("Unloading module \"%s\"..." % module_name)
+
+        self.modules[module_name].on_unload()
 
         for _, command in list(self.commands.items()):
             if command.module.name == module_name:

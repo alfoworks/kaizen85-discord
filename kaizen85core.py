@@ -4,7 +4,9 @@ import random
 import time
 import traceback
 from os import path
+
 import discord
+
 import kaizen85modules
 
 
@@ -58,7 +60,7 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
         class CommandModules(bot.module_handler.Command):
             name = "modules"
             desc = "Информация о модулях и управление ими."
-            args = "[reload]"
+            args = "[reload/cmds] [имя модуля]"
 
             async def run(self, message, args, keys):
                 if len(args) > 0 and args[0] == "reload":
@@ -71,9 +73,32 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
                     bot.load_modules()
                     await bot.run_modules()
                     return True
+                elif len(args) > 1 and args[0] == "cmds":
+                    module_name = " ".join(args[2:]).lower()
 
-                embed: discord.Embed = await bot.send_info_embed(title="Список модулей",
-                                                                 return_embed=True, channel=message.channel)
+                    for _, mod in list(bot.module_handler.modules.items()):
+                        if mod.name.lower() == module_name:
+                            embed: discord.Embed = bot.get_info_embed(message.guild,
+                                                                      title="Список команд модуля %s" % mod.name)
+                            for _, command in bot.module_handler.commands.items():
+                                if command.module == mod:
+                                    keys_user = []
+                                    for key in command.keys:
+                                        keys_user.append("[--%s]" % key)
+
+                                    embed.add_field(
+                                        name="%s%s %s %s" % (
+                                            bot.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
+                                        value=command.desc, inline=False)
+
+                            await message.channel.send(embed=embed)
+
+                            return True
+
+                    await bot.send_error_embed(message.channel, "Модуль с таким именем не найден!")
+                    return True
+
+                embed: discord.Embed = bot.get_info_embed(message.guild, title="Список модулей")
 
                 embed.description = "Всего модулей: %s." % len(bot.module_handler.modules)
 
@@ -89,8 +114,7 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
             keys = ["all"]
 
             async def run(self, message, args, keys):
-                embed: discord.Embed = await bot.send_info_embed(title="Список команд",
-                                                                 return_embed=True, channel=message.channel)
+                embed: discord.Embed = bot.get_info_embed(message.guild, title="Список команд")
 
                 for _, command in bot.module_handler.commands.items():
                     if "all" in keys or bot.check_permissions(message.author.guild_permissions, command.permissions):
@@ -155,8 +179,7 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
 
                     return True
 
-                embed: discord.Embed = await bot.send_info_embed(title="Список параметров",
-                                                                 return_embed=True, channel=message.channel)
+                embed: discord.Embed = bot.get_info_embed(message.guild, title="Список параметров")
 
                 for k, v in bot.module_handler.params.items():
                     embed.add_field(name="%s [%s]" % (k, type(v).__name__), value=v, inline=False)
@@ -265,8 +288,7 @@ async def on_message(message: discord.Message):
             for key in command.keys:
                 keys_user.append("[--%s]" % key)
 
-            embed: discord.Embed = await client.send_error_embed(title="Недостаточно аргументов!",
-                                                                 return_embed=True, channel=message.channel)
+            embed: discord.Embed = await client.get_error_embed(title="Недостаточно аргументов!")
             embed.add_field(name="%s%s %s %s" % (client.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
                             value=command.desc)
 
@@ -299,6 +321,9 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 async def on_member_remove(member: discord.Member):
     for _, mod in list(client.module_handler.modules.items()):
         await mod.on_member_remove(member, client)
+
+
+# TODO: добавить все остальные ивенты дискорда для модулей, по анадогии с тем, что выше. Чисто работа ручками.
 
 
 # ==================================================== #
