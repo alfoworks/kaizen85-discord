@@ -12,8 +12,8 @@ MODLOG_CHANNEL_ID = 485572652099174401
 def pluralize_russian(number, nom_sing, gen_sing, gen_pl):
     s_last_digit = str(number)[-1]
 
-    if int(str(number)[-2:]) in range(11, 20):
-        # 11-19
+    if int(str(number)[-2:]) in range(5, 20) or int(s_last_digit) == "0":
+        # 11-19, 0
         return gen_pl
     elif s_last_digit == '1':
         # 1
@@ -21,9 +21,8 @@ def pluralize_russian(number, nom_sing, gen_sing, gen_pl):
     elif int(s_last_digit) in range(2, 5):
         # 2,3,4
         return gen_sing
-    else:
-        # 5,6,7,8,9,0
-        return gen_pl
+    # unreached
+    return gen_pl
 
 
 class MutedUser:
