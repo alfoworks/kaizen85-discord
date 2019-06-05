@@ -3,6 +3,7 @@ import os
 import pickle
 from collections import Awaitable
 from typing import List
+
 import discord
 
 
@@ -64,7 +65,7 @@ class KaizenBot(discord.Client):
 
     async def send_error_embed(self, channel: discord.TextChannel = None, text: str = None, title: str = "Ошибка",
                                return_embed=False):
-        embed = self.get_special_embed(0xDC143C, title=title)
+        embed = self.get_special_embed(0xFF4C4C, title=title)
         embed.description = text
 
         if return_embed:
@@ -74,7 +75,7 @@ class KaizenBot(discord.Client):
 
     async def send_ok_embed(self, channel: discord.TextChannel = None, text: str = None, title: str = "ОК",
                             return_embed=False):
-        embed = self.get_special_embed(0x228B22, title=title)
+        embed = self.get_special_embed(0x6AAF6A, title=title)
         embed.description = text
 
         if return_embed:
