@@ -13,7 +13,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
     desc = "Протести моё очко, командир!"  # описание модуля
 
     # главный метод модуля, который выполняется когда бот подключился к Discord
-    async def run(self, bot: kaizen85modules.KaizenBot):  # создание команжы
+    async def run(self, bot: kaizen85modules.KaizenBot):  # создание команды
         """
         #==Примеры использования функций бота==#
 
