@@ -171,7 +171,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 await message.mentions[0].add_roles(role, reason=reason)
 
                 for member_role in message.mentions[0].roles:
-                    if member_role != role:
+                    if member_role != role and member_role.id != message.guild.id:
                         await message.mentions[0].remove_roles(member_role)
                         roles.append(member_role.id)
 
@@ -247,7 +247,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 await message.mentions[0].add_roles(role, reason=reason)
 
                 for member_role in message.mentions[0].roles:
-                    if member_role != role:
+                    if member_role != role and member_role.id != message.guild.id:
                         await message.mentions[0].remove_roles(member_role)
                         roles.append(member_role.id)
 
