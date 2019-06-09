@@ -2,6 +2,7 @@
 
 import asyncio
 import time
+import traceback
 
 import discord
 
@@ -46,29 +47,33 @@ class MutedUser:
 
 
 async def tempmute_task(bot):
-    while True:
-        for muted_user in bot.module_handler.params["moderation_mutes"]:
-            if muted_user.deadline != 0 and muted_user.deadline < time.time():
-                bot.module_handler.params["moderation_mutes"].remove(muted_user)
-                bot.module_handler.save_params()
+    try:
+        while True:
+            for muted_user in bot.module_handler.params["moderation_mutes"]:
+                if muted_user.deadline != 0 and muted_user.deadline < time.time():
+                    bot.module_handler.params["moderation_mutes"].remove(muted_user)
+                    bot.module_handler.save_params()
 
-                guild: discord.Guild = bot.get_guild(muted_user.guild_id)
-                role: discord.Role = guild.get_role(MUTED_ROLE_ID)
-                member: discord.Member = guild.get_member(muted_user.user_id)
+                    guild: discord.Guild = bot.get_guild(muted_user.guild_id)
+                    role: discord.Role = guild.get_role(MUTED_ROLE_ID)
+                    member: discord.Member = guild.get_member(muted_user.user_id)
 
-                if role not in member.roles:
-                    return
+                    if role not in member.roles:
+                        print("mutes is NOT muted.")
+                        return
 
-                for role in muted_user.roles:
-                    if guild.get_role(role):
-                        await member.add_roles(guild.get_role(role))
+                    for taken_role in muted_user.roles:
+                        if guild.get_role(role):
+                            await member.add_roles(guild.get_role(taken_role))
 
-                await member.remove_roles(role, reason="Unmute: timed out")
-                await bot.send_ok_embed(bot.get_channel(MODLOG_CHANNEL_ID),
-                                        "С %s был снят мут по причине \"закончилось время мута\"" % member.mention,
-                                        "Наказания")
+                    await member.remove_roles(role, reason="Unmute: timed out")
+                    await bot.send_ok_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                            "С %s был снят мут по причине \"закончилось время мута\"" % member.mention,
+                                            "Наказания")
 
-        await asyncio.sleep(1)
+            await asyncio.sleep(1)
+    except Exception:
+        print(traceback.format_exc())
 
 
 class Module(kaizen85modules.ModuleHandler.Module):

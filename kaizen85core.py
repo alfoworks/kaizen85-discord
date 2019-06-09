@@ -288,7 +288,7 @@ async def on_message(message: discord.Message):
             for key in command.keys:
                 keys_user.append("[--%s]" % key)
 
-            embed: discord.Embed = await client.get_error_embed(title="Недостаточно аргументов!")
+            embed: discord.Embed = client.get_error_embed(title="Недостаточно аргументов!")
             embed.add_field(name="%s%s %s %s" % (client.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
                             value=command.desc)
 
