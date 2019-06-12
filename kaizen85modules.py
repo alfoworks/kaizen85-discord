@@ -7,21 +7,6 @@ from typing import List
 import discord
 
 
-class Logger:
-    class PrintColors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKGREEN = '\033[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
-
-    def log(self, text, color=PrintColors.ENDC):
-        print(color + text + self.PrintColors.ENDC)
-
-
 class KaizenBot(discord.Client):
     CMD_PREFIX = "!"
     BOT_NAME = "Kaizen-85"
@@ -33,7 +18,7 @@ class KaizenBot(discord.Client):
     start_time = 0
 
     module_handler = None
-    logger = Logger()
+    logger = None
 
     def load_modules(self):
         pass
