@@ -321,6 +321,12 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 async def on_member_remove(member: discord.Member):
     for _, mod in list(client.module_handler.modules.items()):
         await mod.on_member_remove(member, client)
+        
+
+@client.event
+async def on_member_join(member: discord.Member):
+    for _, mod in list(client.module_handler.modules.items()):
+        await mod.on_member_join(member, client)
 
 
 # TODO: добавить все остальные ивенты дискорда для модулей, по анадогии с тем, что выше. Чисто работа ручками.

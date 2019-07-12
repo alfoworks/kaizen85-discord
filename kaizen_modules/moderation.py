@@ -321,6 +321,6 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
     async def on_member_join(self, member: discord.Member, bot):
         for user in bot.module_handler.params["moderation_mutes"]:
-            if user.user_id == member.id:
+            if user.user_id == member.id and member.guild.id == user.guild_id:
                 await member.add_roles(member.guild.get_role(MUTED_ROLE_ID), reason="User is muted")
                 break
