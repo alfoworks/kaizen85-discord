@@ -254,7 +254,8 @@ async def on_message(message: discord.Message):
     cmd = args.pop(0)[len(client.CMD_PREFIX):].lower()
 
     if cmd not in client.module_handler.commands:
-        await client.send_error_embed(message.channel, "Ты %s" % message.clean_content[1:], "Команда не найдена")
+        await client.send_error_embed(message.channel, "Ты %s" % message.clean_content[len(client.CMD_PREFIX):],
+                                      "Команда не найдена")
         return
 
     command: client.module_handler.Command = client.module_handler.commands[cmd]
@@ -281,7 +282,7 @@ async def on_message(message: discord.Message):
         await client.send_error_embed(message.channel, random.choice(client.ACCESS_DENIED_MSGS), "Нет прав!")
     except Exception:
         await client.send_error_embed(message.channel, "```\n%s\n```" % traceback.format_exc(),
-                                      "⚠️ Криворукий уебан, у тебя ошибка! ⚠️")
+                                      "⚠️ Ты жидко обосрался! ⚠️")
     else:
         if not ok:
             keys_user = []
@@ -321,7 +322,7 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 async def on_member_remove(member: discord.Member):
     for _, mod in list(client.module_handler.modules.items()):
         await mod.on_member_remove(member, client)
-        
+
 
 @client.event
 async def on_member_join(member: discord.Member):

@@ -45,6 +45,13 @@ class MutedUser:
         self.deadline = deadline
 
 
+class UserWarn:
+    guild_id = 0
+
+    def __init__(self, guild_if):
+        self.guild_id = guild_if
+
+
 async def tempmute_task(bot):
     while True:
         for muted_user in bot.module_handler.params["moderation_mutes"]:
@@ -77,6 +84,11 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
     async def run(self, bot: kaizen85modules.KaizenBot):
         bot.module_handler.add_param("moderation_mutes", [])
+        bot.module_handler.add_param("moderation_warns", {})
+
+        bot.module_handler.add_param("moderation_max_warns", 3)
+        bot.module_handler.add_param("moderation_max_warn_action", "kick")
+
         bot.module_handler.add_background_task(self, tempmute_task(bot))
 
         class CommandPurge(bot.module_handler.Command):
@@ -314,10 +326,119 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
                 return True
 
+        class CommandWarn(bot.module_handler.Command):
+            name = "warn"
+            desc = "Выдать предупреждение пользователю."
+            args = "<@пользователь> [причина]"
+            permissions = ["manage_roles"]
+
+            async def run(self, message: discord.Message, args, keys):
+                if len(message.mentions) < 1:
+                    return False
+
+                if message.mentions[0].id not in bot.module_handler.params["moderation_warns"]:
+                    bot.module_handler.params["moderation_warns"][message.mentions[0].id] = []
+
+                bot.module_handler.params["moderation_warns"][message.mentions[0].id].append(UserWarn(message.guild.id))
+
+                reason = " ".join(args[1:]) if len(args) > 1 else "Плохое поведение"
+
+                await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                           "%s выдал предупреждение %s по причине \"%s\"." % (
+                                               message.author.mention, message.mentions[0].mention, reason),
+                                           "Наказания")
+
+                print(len(bot.module_handler.params["moderation_warns"][message.mentions[0].id]))
+
+                if len(bot.module_handler.params["moderation_warns"][message.mentions[0].id]) == \
+                        bot.module_handler.params["moderation_max_warns"]:
+                    action = bot.module_handler.params["moderation_max_warn_action"]
+
+                    if action == "kick":
+                        await message.mentions[0].kick()
+
+                        await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                                   "%s превысил максимальное кол-во предупреждений и был кикнут." % (
+                                                       message.mentions[0].mention),
+                                                   "Наказания")
+                    elif action == "ban":
+                        await message.mentions[0].ban()
+
+                        await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                                   "%s превысил максимальное кол-во предупреждений и был забанен." % (
+                                                       message.mentions[0].mention),
+                                                   "Наказания")
+                    else:
+                        await bot.send_error_embed(bot.get_channel(MODLOG_CHANNEL_ID),
+                                                   "%s превысил максимальное кол-во предупреждений и был отправлен в мут на 3 часа." % (
+                                                       message.mentions[0].mention),
+                                                   "Наказания")
+
+                        role = message.guild.get_role(MUTED_ROLE_ID)
+
+                        if role:
+                            for user in list(bot.module_handler.params["moderation_mutes"]):
+                                if user.user_id == message.mentions[0].id:
+                                    bot.module_handler.params["moderation_mutes"].remove(user)
+
+                            roles = []
+
+                            for member_role in message.mentions[0].roles:
+                                if member_role != role and member_role.id != message.guild.id:
+                                    await message.mentions[0].remove_roles(member_role)
+                                    roles.append(member_role.id)
+
+                            muted_user = MutedUser(message.mentions[0].id, message.author.guild.id,
+                                                   roles, time.time() + 10800)
+
+                            bot.module_handler.params["moderation_mutes"].append(muted_user)
+
+                            await message.mentions[0].add_roles(role, reason=reason)
+
+                    del bot.module_handler.params["moderation_warns"][message.mentions[0].id]
+
+                bot.module_handler.save_params()
+
+                return True
+
+        class CommandUnwarn(bot.module_handler.Command):
+            name = "unwarn"
+            desc = "Снять предупреждение пользователю"
+            args = "<@пользователь>"
+            keys = ["all"]
+            permissions = ["manage_roles"]
+
+            async def run(self, message: discord.Message, args, keys):
+                if len(message.mentions) == 0:
+                    return False
+
+                if message.mentions[0].id not in bot.module_handler.params["moderation_warns"]:
+                    await bot.send_error_embed(message.channel, "Данный пользователь не имеет предупреждений.")
+
+                    return True
+
+                if "all" in keys:
+                    del bot.module_handler.params["moderation_warns"][message.mentions[0].id]
+
+                    await bot.send_ok_embed(message.channel, "Все предупреждения пользователя были сняты.")
+
+                    return True
+                else:
+                    if len(bot.module_handler.params["moderation_warns"][message.mentions[0].id]) == 1:
+                        del bot.module_handler.params["moderation_warns"][message.mentions[0].id]
+                    else:
+                        del bot.module_handler.params["moderation_warns"][message.mentions[0].id][-1]
+
+                    await bot.send_ok_embed(message.channel, "Последнее предупреждение пользователя было снято.")
+
+                    return True
+
         bot.module_handler.add_command(CommandPurge(), self)
         bot.module_handler.add_command(CommandMute(), self)
         bot.module_handler.add_command(CommandTempMute(), self)
         bot.module_handler.add_command(CommandUnmute(), self)
+        bot.module_handler.add_command(CommandWarn(), self)
+        bot.module_handler.add_command(CommandUnwarn(), self)
 
     async def on_member_join(self, member: discord.Member, bot):
         for user in bot.module_handler.params["moderation_mutes"]:
