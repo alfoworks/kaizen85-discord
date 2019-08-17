@@ -4,7 +4,6 @@ import kaizen85modules
 
 
 class Module(kaizen85modules.ModuleHandler.Module):
-    MAIN_CHANNEL = 394132322372419597
     kgb_messages = []
 
     name = "KGB"
@@ -14,9 +13,10 @@ class Module(kaizen85modules.ModuleHandler.Module):
         bot.module_handler.add_param("kgbmode_enabled", True)
 
     async def on_member_remove(self, member: discord.Member, bot):
-        await bot.send_error_embed(member.guild.get_channel(self.MAIN_CHANNEL),
-                                   "%s (%s) вышел с сервера." % (member.mention, member),
-                                   "Инфо")
+        if member.guild.system_channel:
+            await bot.send_error_embed(member.guild.system_channel,
+                                       "%s (%s) вышел с сервера." % (member.mention, member),
+                                       "Инфо")
 
     async def on_message_delete(self, message: discord.Message, bot: kaizen85modules.KaizenBot):
         if message.id in self.kgb_messages:
