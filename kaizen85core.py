@@ -6,7 +6,7 @@ import traceback
 from os import path
 
 import discord
-
+import importlib
 import kaizen85modules
 
 
@@ -18,12 +18,16 @@ class Bot(kaizen85modules.KaizenBot):
                           "Действие не выполнено, не знаю, почему.", "Под админа косишь?"]
 
     module_handler = kaizen85modules.ModuleHandler()
+    modules_cache = []
 
     def load_modules(self):
         for file in os.listdir(self.MODULES_DIR):
             if file.endswith(".py"):
-                module = __import__("%s.%s" % (self.MODULES_DIR, file[:-3]), globals(), locals(),
-                                    fromlist=["Module"]).Module()
+                if file in self.modules_cache:
+                    module = importlib.reload(self.modules_cache[file]).Module()
+                else:
+                    module = __import__("%s.%s" % (self.MODULES_DIR, file[:-3]), globals(), locals(),
+                                        fromlist=["Module"]).Module()
                 self.module_handler.add_module(module)
 
                 self.logger.log("Loaded module \"%s\"" % module.name, self.logger.PrintColors.OKBLUE)
