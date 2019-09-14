@@ -43,7 +43,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
                 attachment = message.attachments[0]
 
-                if not attachment.filename.endswith(("jpg", "gif", "png")):
+                if not attachment.filename.lower().endswith(("jpg", "gif", "png")):
                     await bot.send_error_embed(message.channel, "Данный тип файла не поддерживается сервисом.")
 
                     return True
