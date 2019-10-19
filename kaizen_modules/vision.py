@@ -6,11 +6,12 @@ from bs4 import BeautifulSoup
 
 import kaizen85modules
 
-service_url = "https://alekssamosbt.ru/vision/index.php"
+service_url = "https://visionbot.ru/index.php"
 
 
 def image_scan(message, url, bot):  # Да-да, говнокод.
-    request = requests.post(service_url, data={"userlink": url})
+    request = requests.post(service_url, data={"userlink": url}, headers={"Cookie": "textonly=true; imageonly=true; "
+                                                                                    "qronly=false"})
 
     soup = BeautifulSoup(request.text, "html.parser")
     results = soup.find_all("div", {"class": "success description"})
