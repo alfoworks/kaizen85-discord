@@ -45,7 +45,7 @@ async def upd_presence():
                                                       "{0} {1}".format(seconds, seconds_text) if seconds else ""]))
 
         await client.change_presence(
-            activity=discord.Streaming(name="Аптайм: %s" % uptime, url="https://twitch.tv/dreamfinity"))
+            activity=discord.Streaming(name="Аптайм: %s" % uptime, url="https://twitch.tv/allformine"))
 
         await asyncio.sleep(5)
 

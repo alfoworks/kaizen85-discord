@@ -60,6 +60,9 @@ class Module(kaizen85modules.ModuleHandler.Module):
                         is_nsfw = True if len(detector.detect(img_path)) > 0 else False
                 except Exception:
                     pass
+                
+                if is_nsfw and not message.channel.is_nsfw():
+                    detector.censor(img_path, out_path=img_path, visualize=False)
 
                 with open(img_path, "rb") as f:
                     img = discord.File(f, spoiler=is_nsfw)

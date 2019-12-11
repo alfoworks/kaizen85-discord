@@ -6,7 +6,7 @@ import traceback
 from os import path
 
 import discord
-
+import importlib
 import kaizen85modules
 
 
@@ -18,12 +18,16 @@ class Bot(kaizen85modules.KaizenBot):
                           "Действие не выполнено, не знаю, почему.", "Под админа косишь?"]
 
     module_handler = kaizen85modules.ModuleHandler()
+    modules_cache = []
 
     def load_modules(self):
         for file in os.listdir(self.MODULES_DIR):
             if file.endswith(".py"):
-                module = __import__("%s.%s" % (self.MODULES_DIR, file[:-3]), globals(), locals(),
-                                    fromlist=["Module"]).Module()
+                if file in self.modules_cache:
+                    module = importlib.reload(self.modules_cache[file]).Module()
+                else:
+                    module = __import__("%s.%s" % (self.MODULES_DIR, file[:-3]), globals(), locals(),
+                                        fromlist=["Module"]).Module()
                 self.module_handler.add_module(module)
 
                 self.logger.log("Loaded module \"%s\"" % module.name, self.logger.PrintColors.OKBLUE)
@@ -256,7 +260,8 @@ async def on_message(message: discord.Message):
     cmd = args.pop(0)[len(client.CMD_PREFIX):].lower()
 
     if cmd not in client.module_handler.commands:
-        await client.send_error_embed(message.channel, "Ты %s" % message.clean_content[1:], "Команда не найдена")
+        await client.send_error_embed(message.channel, "Ты %s" % message.clean_content[len(client.CMD_PREFIX):],
+                                      "Команда не найдена")
         return
 
     command: client.module_handler.Command = client.module_handler.commands[cmd]
@@ -283,14 +288,14 @@ async def on_message(message: discord.Message):
         await client.send_error_embed(message.channel, random.choice(client.ACCESS_DENIED_MSGS), "Нет прав!")
     except Exception:
         await client.send_error_embed(message.channel, "```\n%s\n```" % traceback.format_exc(),
-                                      "⚠️ Криворукий уебан, у тебя ошибка! ⚠️")
+                                      "⚠️ Ты жидко обосрался! ⚠️")
     else:
         if not ok:
             keys_user = []
             for key in command.keys:
                 keys_user.append("[--%s]" % key)
 
-            embed: discord.Embed = await client.get_error_embed(title="Недостаточно аргументов!")
+            embed: discord.Embed = client.get_error_embed(title="Недостаточно аргументов!")
             embed.add_field(name="%s%s %s %s" % (client.CMD_PREFIX, command.name, command.args, " ".join(keys_user)),
                             value=command.desc)
 
@@ -323,6 +328,12 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 async def on_member_remove(member: discord.Member):
     for _, mod in list(client.module_handler.modules.items()):
         await mod.on_member_remove(member, client)
+
+
+@client.event
+async def on_member_join(member: discord.Member):
+    for _, mod in list(client.module_handler.modules.items()):
+        await mod.on_member_join(member, client)
 
 
 # TODO: добавить все остальные ивенты дискорда для модулей, по анадогии с тем, что выше. Чисто работа ручками.
