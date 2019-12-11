@@ -4,33 +4,21 @@ import discord
 
 import kaizen85modules
 
-client: kaizen85modules.KaizenBot = None
-invites = {}
-
-
-async def invite_update_task():
-    while True:
-        for guild in client.guilds:
-            new_invites = await guild.invites()
-            if guild.id not in invites or invites[guild.id] != new_invites:
-                invites[guild.id] = new_invites
-
-        await asyncio.sleep(2)
-
 
 class Module(kaizen85modules.ModuleHandler.Module):
     kgb_messages = []
 
     name = "KGB"
     desc = "Секрет КГБ!"
+    _client: discord.Client
+    invites = {}
 
     async def run(self, bot: kaizen85modules.KaizenBot):
-        global client
         bot.module_handler.add_param("kgbmode_enabled", True)
         bot.module_handler.add_param("custom_join_message", True)
 
-        client = bot
-        bot.module_handler.add_background_task(self, invite_update_task())
+        self._client = bot
+        bot.module_handler.add_background_task(self, self.invite_update_task())
 
     async def on_member_remove(self, member: discord.Member, bot):
         if member.guild.system_channel:
@@ -38,16 +26,25 @@ class Module(kaizen85modules.ModuleHandler.Module):
                                        "%s (%s) вышел с сервера." % (member.mention, member),
                                        "Инфо")
 
+    async def invite_update_task(self):
+        while True:
+            for guild in self._client.guilds:
+                new_invites = await guild.invites()
+                if guild.id not in self.invites or self.invites[guild.id] != new_invites:
+                    self.invites[guild.id] = new_invites
+
+            await asyncio.sleep(2)
+
     async def on_member_join(self, member: discord.Member, bot):
         if member.guild.system_channel_flags.join_notifications:
             return
 
         inviter: discord.User
 
-        if member.guild.id in invites:
+        if member.guild.id in self.invites:
             invites_unpacked = {}
 
-            for invite in invites[member.guild.id]:
+            for invite in self.invites[member.guild.id]:
                 invites_unpacked[invite.code] = invite
 
             for invite in await member.guild.invites():
@@ -55,11 +52,12 @@ class Module(kaizen85modules.ModuleHandler.Module):
                     inviter = invite.inviter
                     break
 
+        # noinspection PyUnboundLocalVariable
         await bot.send_ok_embed(member.guild.system_channel,
                                 "%s вошёл на сервер (пригласил: %s)." % (
                                     member.mention, inviter if inviter else "неизвестно"), title="Инфо")
 
-        invites[member.guild.id] = await member.guild.invites()
+        self.invites[member.guild.id] = await member.guild.invites()
 
     async def on_message_delete(self, message: discord.Message, bot: kaizen85modules.KaizenBot):
         if message.id in self.kgb_messages:
