@@ -182,6 +182,8 @@ class BaseModule(kaizen85modules.ModuleHandler.Module):
                 embed: discord.Embed = bot.get_info_embed(message.guild, title="Список параметров")
 
                 for k, v in bot.module_handler.params.items():
+                    if isinstance(v, dict) or isinstance(v, list):
+                        continue
                     embed.add_field(name="%s [%s]" % (k, type(v).__name__), value=v, inline=False)
 
                 await message.channel.send(embed=embed)
