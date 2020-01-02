@@ -18,16 +18,18 @@ class Bot(kaizen85modules.KaizenBot):
                           "Действие не выполнено, не знаю, почему.", "Под админа косишь?"]
 
     module_handler = kaizen85modules.ModuleHandler()
-    modules_cache = []
+    modules_cache = {}
 
     def load_modules(self):
         for file in os.listdir(self.MODULES_DIR):
             if file.endswith(".py"):
                 if file in self.modules_cache:
-                    module = importlib.reload(self.modules_cache[file]).Module()
+                    module_file = importlib.reload(self.modules_cache[file])
                 else:
-                    module = __import__("%s.%s" % (self.MODULES_DIR, file[:-3]), globals(), locals(),
-                                        fromlist=["Module"]).Module()
+                    module_file = __import__("%s.%s" % (self.MODULES_DIR, file[:-3]), globals(), locals(),
+                                             fromlist=["Module"])
+                    self.modules_cache[file] = module_file
+                module = module_file.Module()
                 self.module_handler.add_module(module)
 
                 self.logger.log("Loaded module \"%s\"" % module.name, self.logger.PrintColors.OKBLUE)
