@@ -6,9 +6,10 @@ import kaizen85modules
 
 
 class MyGlobals(dict):
-    def __init__(self, globs, locs):
+    # noinspection PyMissingConstructor
+    def __init__(self, globs, locals):
         self.globals = globs
-        self.locals = locs
+        self.locals = locals
 
     def __getitem__(self, name):
         try:
@@ -23,22 +24,33 @@ class MyGlobals(dict):
         del self.globals[name]
 
 
-def _exec(code, g, l):
+premade_code = """
+import io
+import asyncio
+from contextlib import redirect_stdout
+async def execute():
     out = io.StringIO()
+    error = False
+    with redirect_stdout(out):
+        try:
+%s
+        except Exception as e:
+            error = True
+            out.write(str(e))
+    if is_error:
+        await bot.send_error_embed(message.channel, out, "Код выполнен с ошибкой")
+    else:
+        await bot.send_ok_embed(message.channel, out, "Код успешно выполнен")
+asyncio.ensure_future(execute())
+"""
+
+
+def _exec(code: str, g, l):
     d = MyGlobals(g, l)
-    try:
-        error = False
-        with redirect_stdout(out):
-            exec(code, d)
-    except Exception as ex:
-        error = True
-        out.write(str(ex))
-
-    return out.getvalue(), error
-
-
-def _await(coro):  # це костыль для выполнения асинхронных функций в exec
-    asyncio.ensure_future(coro)
+    code_for_embed = ""
+    for line in code.splitlines(keepends=True):
+        code_for_embed = code_for_embed + "      " + line
+    exec(premade_code % code_for_embed, d)
 
 
 class Module(kaizen85modules.ModuleHandler.Module):
@@ -58,12 +70,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 if len(code) < 3:
                     return False
 
-                out, is_error = _exec(code[1].strip().rstrip(), globals(), locals())
-
-                if is_error:
-                    await bot.send_error_embed(message.channel, out, "Код выполнен с ошибкой")
-                else:
-                    await bot.send_ok_embed(message.channel, out, "Код успешно выполнен")
+                _exec(code[1].strip().rstrip(), globals(), locals())
 
                 return True
 
