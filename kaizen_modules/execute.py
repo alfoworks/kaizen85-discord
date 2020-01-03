@@ -49,7 +49,7 @@ def _exec(code: str, g, l):
     d = MyGlobals(g, l)
     code_for_embed = ""
     for line in code.splitlines(keepends=True):
-        code_for_embed = code_for_embed + "      " + line
+        code_for_embed = code_for_embed + "            " + line
     exec(premade_code % code_for_embed, d)
 
 
