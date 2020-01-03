@@ -38,9 +38,9 @@ async def execute():
             error = True
             out.write(str(e))
     if is_error:
-        await bot.send_error_embed(message.channel, out, "Код выполнен с ошибкой")
+        await bot.send_error_embed(message.channel, out.get_value(), "Код выполнен с ошибкой")
     else:
-        await bot.send_ok_embed(message.channel, out, "Код успешно выполнен")
+        await bot.send_ok_embed(message.channel, out.get_value(), "Код успешно выполнен")
 asyncio.ensure_future(execute())
 """
 
