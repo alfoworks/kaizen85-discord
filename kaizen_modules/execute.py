@@ -30,17 +30,17 @@ import asyncio
 from contextlib import redirect_stdout
 async def execute():
     out = io.StringIO()
-    error = False
+    is_error = False
     with redirect_stdout(out):
         try:
 %s
         except Exception as e:
-            error = True
+            is_error = True
             out.write(str(e))
     if is_error:
-        await bot.send_error_embed(message.channel, out.get_value(), "Код выполнен с ошибкой")
+        await bot.send_error_embed(message.channel, out.getvalue(), "Код выполнен с ошибкой")
     else:
-        await bot.send_ok_embed(message.channel, out.get_value(), "Код успешно выполнен")
+        await bot.send_ok_embed(message.channel, out.getvalue(), "Код успешно выполнен")
 asyncio.ensure_future(execute())
 """
 
