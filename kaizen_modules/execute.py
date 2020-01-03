@@ -7,9 +7,9 @@ import kaizen85modules
 
 class MyGlobals(dict):
     # noinspection PyMissingConstructor
-    def __init__(self, globs, locals):
+    def __init__(self, globs, locs):
         self.globals = globs
-        self.locals = locals
+        self.locals = locs
 
     def __getitem__(self, name):
         try:
@@ -66,7 +66,8 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
             async def run(self, message: discord.Message, args, keys):
                 code = message.content.split("```")
-
+                bot.logger.log("Executing code. Necessary any use bot object for right executing", # Капец костыльно
+                               bot.logger.PrintColors.WARNING)
                 if len(code) < 3:
                     return False
 
