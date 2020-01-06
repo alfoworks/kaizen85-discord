@@ -40,7 +40,10 @@ async def execute():
     if is_error:
         await bot.send_error_embed(message.channel, out.getvalue(), "Код выполнен с ошибкой")
     else:
-        await bot.send_ok_embed(message.channel, out.getvalue(), "Код успешно выполнен")
+        if len(out) <= 2048
+            await bot.send_ok_embed(message.channel, out.getvalue(), "Код успешно выполнен")
+        else:
+            await bot.send_ok_embed(message.channel, "Размер вывода превышает 2048 символов", "Код успешно выполнен")
 asyncio.ensure_future(execute())
 """
 
@@ -70,7 +73,6 @@ class Module(kaizen85modules.ModuleHandler.Module):
                                bot.logger.PrintColors.WARNING)
                 if len(code) < 3:
                     return False
-
                 _exec(code[1].strip().rstrip(), globals(), locals())
 
                 return True
