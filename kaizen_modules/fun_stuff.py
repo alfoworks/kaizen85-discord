@@ -3,6 +3,7 @@ import random
 
 import discord
 import requests
+from bs4 import BeautifulSoup
 
 import kaizen85modules
 
@@ -116,11 +117,55 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
                 return True
 
+        class CommandPrntScr(bot.module_handler.Command):
+            name = "prntscr"
+            desc = "Рандомный скриншот с сервиса lightshot"
+            args = ""
+
+            async def run(self, message: discord.Message, args, keys):
+                chars = "abcdefghijklmnopqrstuvwxyz1234567890"
+                res = None
+
+                for _ in range(5):
+                    code = ""
+
+                    for i in range(5):
+                        code += chars[random.randint(1, len(chars)) - 1]
+
+                    url = "https://prnt.sc/" + code
+
+                    html_doc = requests.get(url,
+                                            headers={"user-agent": "Mozilla/5.0 (iPad; U; CPU "
+                                                                   "OS 3_2 like Mac OS X; "
+                                                                   "en-us) "
+                                                                   "AppleWebKit/531.21.10 ("
+                                                                   "KHTML, like Gecko) "
+                                                                   "Version/4.0.4 "
+                                                                   "Mobile/7B334b "
+                                                                   "Safari/531.21.102011-10-16 20:23:10"}).text
+                    soup = BeautifulSoup(html_doc, "html.parser")
+
+                    if not soup.find_all("img")[0]["src"].startswith("//st.prntscr.com"):
+                        res = soup.find_all("img")[0]["src"]
+                        break
+                    else:
+                        print("Not found %s" % url)
+
+                if not res:
+                    await bot.send_error_embed(message.channel, "Превышено кол-во попыток поиска изображения (5)")
+
+                embed: discord.Embed = bot.get_info_embed(message.guild, title="Рандомное изображение с LightShot")
+                embed.set_image(url=res)
+
+                await message.channel.send(embed=embed)
+
+                return True
+
         bot.module_handler.add_command(CommandTTE(), self)
         bot.module_handler.add_command(CommandChoice(), self)
-
         if tts_enabled:
             bot.module_handler.add_command(CommandTTS(), self)
+        bot.module_handler.add_command(CommandPrntScr(), self)
 
     async def on_message(self, message: discord.Message, bot):
         for word in gay_react_words:

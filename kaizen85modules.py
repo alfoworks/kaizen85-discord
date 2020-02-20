@@ -41,9 +41,15 @@ class KaizenBot(discord.Client):
     def run_modules(self):
         pass
 
-    def get_special_embed(self, color=0xFFFFFF, title="Embed") -> discord.Embed:
+    def get_special_embed(self, color=0xFFFFFF, text="", title="Embed") -> discord.Embed:
+        warn_message = "*Кол-во символов вывода превышено и было обрезано*"
+
+        if len(text) > 2048:
+            text = "%s\n%s" % (warn_message, text[:2048 - len(warn_message) - 1])
+
         embed = discord.Embed(color=color)
         embed.set_author(name=title, icon_url=self.user.avatar_url)
+        embed.description = text
 
         return embed
 
@@ -54,20 +60,17 @@ class KaizenBot(discord.Client):
         if role:
             color = role.color.value
 
-        embed = self.get_special_embed(title=title, color=color)
-        embed.description = text
+        embed = self.get_special_embed(text=text, title=title, color=color)
 
         await channel.send(embed=embed)
 
     async def send_error_embed(self, channel: discord.TextChannel, text: str = None, title: str = "Ошибка"):
-        embed = self.get_special_embed(0xFF4C4C, title=title)
-        embed.description = text
+        embed = self.get_special_embed(0xFF4C4C, text=text, title=title)
 
         await channel.send(embed=embed)
 
     async def send_ok_embed(self, channel: discord.TextChannel, text: str = None, title: str = "ОК"):
-        embed = self.get_special_embed(0x6AAF6A, title=title)
-        embed.description = text
+        embed = self.get_special_embed(0x6AAF6A, text=text, title=title)
 
         await channel.send(embed=embed)
 

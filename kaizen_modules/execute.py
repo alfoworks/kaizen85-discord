@@ -1,6 +1,10 @@
+import subprocess
+
 import discord
 
 import kaizen85modules
+
+ALLOWED_USER_IDS = [337762030138163200, 327420598588276736, 308653925379211264, 287157820233875458]
 
 
 class MyGlobals(dict):
@@ -38,10 +42,7 @@ async def execute():
     if is_error:
         await bot.send_error_embed(message.channel, out.getvalue(), "Код выполнен с ошибкой")
     else:
-        if len(out.getvalue()) <= 2048:
-            await bot.send_ok_embed(message.channel, out.getvalue(), "Код успешно выполнен")
-        else:
-            await bot.send_ok_embed(message.channel, "Размер вывода превышает 2048 символов", "Код успешно выполнен")
+        await bot.send_ok_embed(message.channel, out.getvalue(), "Код успешно выполнен")
 asyncio.ensure_future(execute())
 """
 
@@ -63,16 +64,63 @@ class Module(kaizen85modules.ModuleHandler.Module):
             name = "execute"
             desc = "Выполнить Python-код из сообщения"
             args = "```Python Code```"
-            permissions = ["administrator"]
 
             async def run(self, message: discord.Message, args, keys):
+                if message.author.id not in ALLOWED_USER_IDS:
+                    raise bot.AccessDeniedException
+
                 code = message.content.split("```")
-                bot.logger.log("Executing code. It's necessary to use bot object for right executing",
-                               bot.logger.PrintColors.WARNING)
+
                 if len(code) < 3:
                     return False
+
+                bot.logger.log("[WARN] Executing code!\n%s" % code,
+                               bot.logger.PrintColors.WARNING)
+
                 _exec(code[1].strip().rstrip(), globals(), locals())
 
                 return True
 
+        class CommandShell(bot.module_handler.Command):
+            name = "shell"
+            desc = "Выполнить консольную команду"
+            args = "<команда>"
+
+            async def run(self, message: discord.Message, args, keys):
+                if message.author.id not in ALLOWED_USER_IDS:
+                    raise bot.AccessDeniedException
+
+                if len(args) < 1:
+                    return False
+
+                command = " ".join(message.content.split()[1:])
+
+                if "shutdown" in command.lower() or "restart" in command.lower():
+                    await bot.send_error_embed(message.channel,
+                                               """
+Использование этой команды - нарушение закона!. Закона жизни, который гласит:
+Перед пацанами базар держи
+Перед другом - слово.
+Родителей и девушку люби, 
+И храни веру перед Богом...
+""")
+                    return True
+
+                bot.logger.log("[WARN] Running a shell command!\n%s" % command,
+                               bot.logger.PrintColors.WARNING)
+
+                try:
+                    result = subprocess.check_output(command, shell=True, timeout=5, stderr=subprocess.STDOUT)
+                except subprocess.TimeoutExpired:
+                    await bot.send_ok_embed(message.channel, "Превышено время ожидания получения ответа команлы",
+                                            "Консольная команда выполнена успешно")
+                except subprocess.CalledProcessError as sex:
+                    await bot.send_error_embed(message.channel, sex.output.decode("cp866"),
+                                               "Не удалось выполнить консольную команду")
+                else:
+                    await bot.send_ok_embed(message.channel, result.decode("cp866"), "Консольная команда выполнена")
+
+                return True
+
         bot.module_handler.add_command(CommandExecute(), self)
+        bot.module_handler.add_command(CommandShell(), self)
