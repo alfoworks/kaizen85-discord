@@ -1,3 +1,4 @@
+import platform
 import subprocess
 
 import discord
@@ -109,16 +110,18 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 bot.logger.log("[WARN] Running a shell command!\n%s" % command,
                                bot.logger.PrintColors.WARNING)
 
+                encoding = "cp866" if platform.system() == "Windows" else "utf-8"
+
                 try:
                     result = subprocess.check_output(command, shell=True, timeout=5, stderr=subprocess.STDOUT)
                 except subprocess.TimeoutExpired:
                     await bot.send_ok_embed(message.channel, "Превышено время ожидания получения ответа команлы",
                                             "Консольная команда выполнена успешно")
                 except subprocess.CalledProcessError as sex:
-                    await bot.send_error_embed(message.channel, sex.output.decode("cp866"),
+                    await bot.send_error_embed(message.channel, sex.output.decode(encoding),
                                                "Не удалось выполнить консольную команду")
                 else:
-                    await bot.send_ok_embed(message.channel, result.decode("cp866"), "Консольная команда выполнена")
+                    await bot.send_ok_embed(message.channel, result.decode(encoding), "Консольная команда выполнена")
 
                 return True
 
