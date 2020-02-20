@@ -1,7 +1,5 @@
-import asyncio
-import io
-from contextlib import redirect_stdout
 import discord
+
 import kaizen85modules
 
 
@@ -40,7 +38,7 @@ async def execute():
     if is_error:
         await bot.send_error_embed(message.channel, out.getvalue(), "Код выполнен с ошибкой")
     else:
-        if len(out) <= 2048
+        if len(out.getvalue()) <= 2048:
             await bot.send_ok_embed(message.channel, out.getvalue(), "Код успешно выполнен")
         else:
             await bot.send_ok_embed(message.channel, "Размер вывода превышает 2048 символов", "Код успешно выполнен")
@@ -69,7 +67,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
             async def run(self, message: discord.Message, args, keys):
                 code = message.content.split("```")
-                bot.logger.log("Executing code. Necessary any use bot object for right executing", # Капец костыльно
+                bot.logger.log("Executing code. It's necessary to use bot object for right executing",
                                bot.logger.PrintColors.WARNING)
                 if len(code) < 3:
                     return False
