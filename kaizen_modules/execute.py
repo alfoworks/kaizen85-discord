@@ -115,7 +115,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 try:
                     result = subprocess.check_output(command, shell=True, timeout=5, stderr=subprocess.STDOUT)
                 except subprocess.TimeoutExpired:
-                    await bot.send_ok_embed(message.channel, "Превышено время ожидания получения ответа команлы",
+                    await bot.send_ok_embed(message.channel, "Превышено время ожидания получения ответа команды",
                                             "Консольная команда выполнена успешно")
                 except subprocess.CalledProcessError as sex:
                     await bot.send_error_embed(message.channel, sex.output.decode(encoding),
