@@ -126,7 +126,9 @@ class Module(kaizen85modules.ModuleHandler.Module):
                 chars = "abcdefghijklmnopqrstuvwxyz1234567890"
                 res = None
 
-                for _ in range(5):
+                max_attempts = 15
+
+                for _ in range(max_attempts):
                     code = ""
 
                     for i in range(5):
@@ -148,11 +150,11 @@ class Module(kaizen85modules.ModuleHandler.Module):
                     if not soup.find_all("img")[0]["src"].startswith("//st.prntscr.com"):
                         res = soup.find_all("img")[0]["src"]
                         break
-                    else:
-                        print("Not found %s" % url)
 
                 if not res:
-                    await bot.send_error_embed(message.channel, "Превышено кол-во попыток поиска изображения (5)")
+                    await bot.send_error_embed(message.channel,
+                                               "Превышено кол-во попыток поиска изображения (%s)" % max_attempts)
+                    return
 
                 embed: discord.Embed = bot.get_info_embed(message.guild, title="Рандомное изображение с LightShot")
                 embed.set_image(url=res)
