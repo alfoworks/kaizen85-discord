@@ -41,7 +41,7 @@ class KaizenBot(discord.Client):
     def run_modules(self):
         pass
 
-    def get_special_embed(self, color=0xFFFFFF, text="", title="Embed") -> discord.Embed:
+    def get_special_embed(self, color=0xFFFFFF, title="Embed", text="") -> discord.Embed:
         warn_message = "*Кол-во символов вывода превышено и было обрезано*"
 
         if len(text) > 2048:
