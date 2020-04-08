@@ -112,7 +112,7 @@ class Module(kaizen85modules.ModuleHandler.Module):
                     img = discord.File(f, spoiler=is_nsfw)
 
                     await message.channel.send("Картинка по запросу \"%s\": (запросил: %s)%s%s" % (
-                        keyword, message.author.mention,
+                        keyword, message.author.mention if "anon" not in keys else "[данные удалены]",
                         "\n⚠️Обнаружен NSFW контент! Картинка спрятана под спойлер. Открывайте на свой страх и риск! ⚠️" if is_nsfw else "",
                         "\n⚠️Проверка NSFW отключена! Проверьте логи. ⚠️" if not detector else ""),
                                                file=img)
