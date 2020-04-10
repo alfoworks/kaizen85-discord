@@ -38,7 +38,7 @@ async def udp_info(channel_id: int, bot: kaizen85modules.KaizenBot):
         if not channel:
             print("[ApexCurrentMap] Wrong channel id!")
             break
-        cycle = ((time.time() + 10800) % (5400+5400+1800)) // 5400
+        cycle = ((time.time() - 1800) % (5400+5400+1800)) // 5400
         descript = "Текущая карта: " + " | ".join(["__**%s**__" % e if i == cycle else  e for i, e in enumerate(maps)])
         await channel.edit(topic=descript)
         await asyncio.sleep(60)
