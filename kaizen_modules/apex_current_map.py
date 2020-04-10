@@ -1,12 +1,17 @@
 import asyncio
+import time
+
+import discord
 
 import kaizen85modules
 
-MAPS = {
-    "World's Edge": 5400,
-    "Kings Canyon": 5400,
-    "Kings Canyon After Dark": 1800
-}
+maps = ["World's Edge", "Kings Canyon", "Kings Canyon After Dark"]
+
+# MAPS = {
+#     "World's Edge": 5400,
+#     "Kings Canyon": 5400,
+#     "Kings Canyon After Dark": 1800
+# }
 
 
 def pluralize_russian(number, nom_sing, gen_sing, gen_pl):
@@ -28,18 +33,20 @@ def pluralize_russian(number, nom_sing, gen_sing, gen_pl):
 
 async def udp_info(channel_id: int, bot: kaizen85modules.KaizenBot):
     while True:
-        channel = bot.get_channel(channel_id)
+        channel: discord.TextChannel= bot.get_channel(channel_id)
 
         if not channel:
             print("[ApexCurrentMap] Wrong channel id!")
-            continue
-
+            break
+        cycle = ((time.time() + 10800) % (5400+5400+1800)) // 5400
+        descript = "Текущая карта: " + " | ".join(["__**%s**__" % e if i == cycle else  e for i, e in enumerate(maps)])
+        await channel.edit(topic=descript)
         await asyncio.sleep(60)
 
 
 class Module(kaizen85modules.ModuleHandler.Module):
     name = "ApexCurrentMap"
-    desc = "Показывает текущую карту в Apex Legends в описании канала"
+    desc = "Показывает текущую карту Apex Legends в описании канала"
 
     async def run(self, bot):
         bot.module_handler.add_param("apex_channel_id", 0)
