@@ -43,25 +43,6 @@ class Module(kaizen85modules.ModuleHandler.Module):
 
                 keyword = " ".join(message.clean_content.split()[1:])
 
-                """
-                 resp = google_images_download.googleimagesdownload()
-                aip = resp.download(arguments={"keywords": keyword, "limit": 1, "output_directory": "img_search",
-                                               "no_directory": True})
-
-                if len(aip[next(iter(aip))]) < 1:
-                    await bot.send_error_embed(message.channel, "%s, изображение по запросу \"%s\" не найдено!" % (
-                        message.author.mention, keyword))
-                    return True
-
-                img_path = aip[next(iter(aip))][0]
-
-                if len(img_path) < 1:
-                    await bot.send_error_embed(message.channel,
-                                               "%s, произошла ошибка при загрузке картинки по запросу \"%s\"!" % (
-                                                   message.author.mention, keyword))
-                    return True
-                """
-
                 try:
                     resp = requests.get(request_url % (keyword, api_key, cx))
                 except Exception:
