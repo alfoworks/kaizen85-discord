@@ -1,5 +1,5 @@
 # Репозиторий архивирован
-Т.к. в разработке находится новый бот. С.м. https://github.com/alfoworks/M.R.V.N.
+Т.к. в разработке находится новый бот. С.м. https://github.com/alfoworks/MRVN2
 
 # kaizen85-discord
 Модульный Discord-бот на rewrite ветке discord.py
